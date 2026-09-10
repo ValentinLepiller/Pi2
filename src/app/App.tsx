@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import {
   ArrowRightIcon,
   CheckCircleIcon,
+  CommandIcon,
   CursorClickIcon,
   NotionLogoIcon,
 } from "@phosphor-icons/react";
@@ -451,6 +452,14 @@ function SitePopup({ state, tab }: { state: AppState; tab?: chrome.tabs.Tab }) {
               {t(
                 draft?.annotationCount ? "Reprendre les annotations" : "Commencer les annotations",
               )}
+              <kbd
+                className="button-shortcut"
+                title="⌘ + . sur Mac · Ctrl + . sur Windows/Linux"
+                aria-hidden="true"
+              >
+                <CommandIcon />
+                <span>.</span>
+              </kbd>
             </Button>
           ) : (
             <>

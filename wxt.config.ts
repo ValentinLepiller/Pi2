@@ -13,7 +13,7 @@ export default defineConfig({
     icons: { 16: "icon-16.png", 48: "icon-48.png", 128: "icon-128.png" },
     commands: {
       "toggle-annotations": {
-        suggested_key: { default: "Ctrl+Period", mac: "MacCtrl+Period" },
+        suggested_key: { default: "Ctrl+Period", mac: "Command+Period" },
         description: "Activer ou mettre en pause les annotations, ou ouvrir Pi2",
       },
     },

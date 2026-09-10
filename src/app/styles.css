@@ -160,6 +160,22 @@ input::placeholder {
   height: 18px;
   flex-shrink: 0;
 }
+.button-shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 3px 5px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font: 12px/1 var(--vf-mono);
+  opacity: 0.7;
+  white-space: nowrap;
+}
+.button-shortcut svg {
+  width: 14px;
+  height: 14px;
+}
 .button-primary {
   background: var(--vf-accent);
   color: var(--vf-on-accent);

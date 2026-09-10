@@ -1,27 +1,32 @@
-# Pi2 — état actuel
+# Pi2 — reprise du projet
 
-Version 0.1.2 installée et activée dans Brave. Identifiant conservé : `kodmpccblghoanniiflafihdnlbmlceh`. Chemin inchangé : `/home/valentin/.local/share/vals-feedbacks/chrome`. Sauvegarde des anciens fichiers dans le sous-dossier `backups` voisin ; données conservées.
+État vérifié le 10 septembre 2026.
 
-Interface dark uniquement dans la popup. Plus de page options, de guide, de menu Sites associés ni d’historique. Sans connexion enregistrée, Connecter Notion ouvre le portail développeur depuis tout site. Saisie du jeton directement dans la popup sur tout site ; préparation des pages depuis Notion et choix de la destination depuis le site. Sur un site lié : annotations et reprise d’un envoi en échec. Textes « Du feedback à l’action », « Un détail à améliorer ? » et adresse sous le titre supprimés.
+## Application
 
-Annotations, PNG, contexte DOM et console envoyés directement à Notion. IndexedDB conserve brouillons et file. Aucun backend ni agent branché. PAT ou clé d’intégration interne ; pas d’OAuth.
+Extension Chromium 127+, version source 0.1.3. La dernière installation locale dans Brave reste en version 0.1.2. Interface dark dans la popup uniquement. PAT Notion ou clé d’intégration interne ; pas d’OAuth, de backend ni d’agent branché.
 
-Vérifié : build/zip, TypeScript, lint, 7 tests unitaires et 4 parcours Chromium isolés, avec Notion simulé ; vérification visuelle des popups. Revue simplify : anciennes pages et styles supprimés, dépendance date-fns retirée, connexion nouvellement ajoutée sélectionnée correctement.
+- Les pages de destination se préparent depuis Notion et se choisissent par leur nom depuis le site. Le choix est mémorisé par origine exacte.
+- Chaque nouveau retour crée sa propre page Notion : commentaire en titre, URL précise, PNG du composant visible et contexte JSON avec console. Les envois de l’ancienne version déjà commencés terminent leur page existante sans doublon.
+- Les brouillons et reprises d’envoi persistent dans IndexedDB. Les réponses réseau perdues à la création et à l’ajout des blocs sont couvertes.
+- Ctrl + . démarre/reprend ou met en pause ; sans destination, ouvre Pi2. Command + . est configuré sur Mac. Le bouton affiche le symbole Command et le point.
 
-Nom du produit et de la tâche : Pi2. Le libellé du projet dans la barre latérale Codex reste à renommer ; aucun déplacement du dossier ni modification directe de l’état interne de Codex effectué.
+## Installation locale
 
-Correctif de dimensionnement : largeur de document fixée à 420 px, suppression de la contrainte circulaire 100vw. Vraie popup Chromium vérifiée sous Xvfb : 420 × 423 px, aucun débordement horizontal. Régression à viewport initial de 50 px couverte dans le parcours navigateur.
+Conserver l’identifiant `kodmpccblghoanniiflafihdnlbmlceh`, IndexedDB `vals-feedbacks` et le dossier `/home/valentin/.local/share/vals-feedbacks/chrome`. Les sauvegardes des fichiers sont dans le dossier `backups` voisin. Ne pas déplacer le projet ni réinstaller l’extension sous un autre chemin pour un simple renommage.
 
-Icônes PNG réexportées avec transparence pour supprimer les quatre coins blancs.
+## GitHub et releases
 
-Détection Notion centralisée : notion.com (y compris /p/espace/titre-ID), notion.so et notion.site. Parcours de création de base validé sur notion.com avec API simulée.
+Dépôt : https://github.com/ValentinLepiller/Pi2 — branche `main`.
 
-Vérification des pages vides corrigée : Notion renvoie HTTP 400 « is a page, not a database », désormais traité comme une page. Les autres erreurs 400 affichent le détail Notion. Régression couverte dans le parcours navigateur. Vérification réelle réussie sur la page Pi2 via le jeton déjà enregistré, sans modification de la page ; aucune base présente à ce stade.
+Le commit `452a0d4` ajoute le workflow de release et a été poussé. Publier un tag `vX.Y.Z` depuis un commit contenant ce workflow construit `pi2-X.Y.Z-chrome.zip` et le joint aux Assets. Le lancement manuel produit un artefact conservé 14 jours. Pas de GitHub Packages.
 
-Sélecteur de destination sur les sites : pages configurées affichées par leur nom, choix mémorisé au démarrage. Enrichissement des anciennes destinations par lecture du titre Notion, mis en cache localement. Ligne isolée « Feedbacks » retirée de la configuration. Parcours testé avec sélection, reprise du choix, migration des noms et envoi complet.
+Build manuel GitHub réussi, archive téléchargée et vérifiée : https://github.com/ValentinLepiller/Pi2/actions/runs/34481161883. La version dérivée du tag a aussi été validée localement avec `v9.8.7`. Ce test manuel ne publie pas de release. La livraison réelle se suit dans les exécutions du workflow déclenchées par publication.
 
-Raccourci natif Ctrl + . ajouté : démarrer/reprendre les annotations sur un site lié, mettre en pause immédiatement si elles sont actives, sinon ouvrir Pi2. Chromium minimum 127 pour openPopup. Test de véritables touches via xdotool dans Xvfb avec X11 forcé, API Notion simulée ; vérifie aussi la conservation du brouillon et la reprise après rechargement.
+## Vérifications et points à reprendre
 
-Captures recadrées sur le composant visible avant réduction à 1 600 px. Masquage Pi2 corrigé dans le Shadow DOM. Tests de pixels à densité 2, après défilement et avec composant partiellement hors écran ; capture de secours sans debugger vérifiée via le raccourci natif.
+TypeScript, lint, 8 tests unitaires et 5 parcours Chromium ont été validés au fil des changements. Le test des touches natives sous Xvfb présente une intermittence d’ouverture de popup ; il a réussi au dernier passage isolé. Utiliser X11 forcé, `xvfb-run` et `xdotool`, jamais le bureau actif. La touche Command n’a pas été testée physiquement sur Mac.
 
-Envois Notion séparés : une nouvelle page par annotation, commentaire en titre, URL précise, capture et JSON propre (console de la session incluse). Reprise persistante par annotation, sans doublons après perte de réponse à la création ou à l’ajout des blocs. Les envois de l’ancienne version déjà commencés terminent leur page existante pour éviter de les dupliquer.
+La version 0.1.3 intègre les retouches du bouton, le raccourci Command sur Mac et les mises à jour de documentation. Release : https://github.com/ValentinLepiller/Pi2/releases/tag/v0.1.3. Vérifier `git status` à la reprise.
+
+Le renommage du libellé du projet dans la barre latérale Codex n’a pas été effectué dans cette tâche. Le dossier de travail a été conservé.

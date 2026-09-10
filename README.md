@@ -15,7 +15,7 @@ Depuis les sources : `bun install` puis `bun run build`. Charger `.output/chrome
 3. Sur le site, ouvrir Pi2, choisir une page dans **Envoyer les feedbacks à**, puis **Commencer les annotations**. Ce choix est mémorisé pour le site. Sélectionner un élément, écrire un commentaire, puis **Ajouter**. Les repères permettent de modifier ou supprimer ; **Naviguer** permet d’utiliser le site.
 4. **Envoyer** crée une page Notion par retour, avec son commentaire en titre, sa capture et son contexte JSON (console incluse). Les brouillons persistent après rechargement ou redémarrage. En cas d’échec, rouvrir la popup sur le site pour réessayer.
 
-**Ctrl + .** active ou met en pause les annotations sur un site déjà lié. Sinon, il ouvre Pi2. Les annotations ajoutées sont conservées. Le raccourci se personnalise dans `chrome://extensions/shortcuts` (ou `brave://extensions/shortcuts`).
+**Ctrl + .** (ou **⌘.** sur Mac) active ou met en pause les annotations sur un site déjà lié. Sinon, il ouvre Pi2. Les annotations ajoutées sont conservées. Le raccourci se personnalise dans `chrome://extensions/shortcuts` (ou `brave://extensions/shortcuts`).
 
 Le jeton se saisit dans la popup sur tout site ; les pages de destination se préparent depuis Notion et se choisissent sur le site. Le jeton reste dans ce profil de navigateur. Les sous-domaines, ports et protocoles sont associés séparément.
 
@@ -37,6 +37,6 @@ Installer le navigateur de test avec `bunx playwright install chromium`. Les tes
 
 ## Publier une version
 
-Sur GitHub, créer et publier une release depuis `main` avec un nouveau tag `vX.Y.Z` (ex. `v0.2.0`). Le workflow **Build extension** vérifie le code, construit le ZIP et l’ajoute aux Assets de la release. La version de l’extension suit le tag ; aucun secret supplémentaire à configurer. Un brouillon de release ne lance pas le build.
+Après avoir committé et poussé les modifications, créer et publier sur GitHub une release depuis `main` avec un nouveau tag `vX.Y.Z` (ex. `v0.2.0`). Le workflow **Build extension** vérifie le code, construit le ZIP et l’ajoute aux Assets de la release. La version de l’extension suit le tag ; aucun secret supplémentaire à configurer. Un brouillon de release ne lance pas le build.
 
 Pour vérifier un build sans publier, lancer **Actions → Build extension → Run workflow**. Le ZIP est disponible dans les artefacts de cette exécution.
