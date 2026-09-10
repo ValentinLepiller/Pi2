@@ -8,7 +8,7 @@ Télécharger `pi2-VERSION-chrome.zip` dans les **Assets** de la [dernière rele
 
 **Firefox** : télécharger `pi2-VERSION-firefox.zip`. Dans `about:debugging#/runtime/this-firefox`, choisir **Charger un module complémentaire temporaire**, puis le ZIP. Ce build non signé reste chargé jusqu’à la fermeture de Firefox ; une installation permanente nécessite une signature Mozilla. La collecte console est disponible uniquement sur Chromium.
 
-Le bouton **Mettre à jour**, à côté de la version dans Pi2, vérifie GitHub et propose le ZIP adapté au navigateur. Le téléchargement ne l’installe pas automatiquement. Pour mettre Chromium à jour, remplacer les fichiers dans **le même dossier**, puis cliquer sur **Recharger** dans la page des extensions et recharger le site. Charger chaque version depuis un nouveau dossier crée une autre installation, avec ses propres réglages.
+Le bouton **Chercher des mises à jour**, à côté de la version dans Pi2, vérifie GitHub et propose le ZIP adapté au navigateur. Le téléchargement ne l’installe pas automatiquement. Pour mettre Chromium à jour, remplacer les fichiers dans **le même dossier**, puis cliquer sur **Recharger** dans la page des extensions et recharger le site. Charger chaque version depuis un nouveau dossier crée une autre installation, avec ses propres réglages.
 
 Depuis les sources : `bun install` puis `bun run build`. Charger `.output/chrome-mv3`. Pour Firefox : `bun run build:firefox`, puis charger `.output/firefox-mv3/manifest.json`.
 

@@ -4,7 +4,7 @@
 
 ## Application
 
-Extension Chromium 127+ et Firefox 140+, version source 0.1.7. L’installation locale Brave vérifiée est en 0.1.7. Interface dark dans la popup uniquement. PAT Notion ou clé d’intégration interne ; pas d’OAuth, de backend ni d’agent branché.
+Extension Chromium 127+ et Firefox 140+, version source 0.1.8. L’installation locale Brave vérifiée est en 0.1.7. Interface dark dans la popup uniquement. PAT Notion ou clé d’intégration interne ; pas d’OAuth, de backend ni d’agent branché.
 
 - Les pages de destination se préparent depuis Notion et se choisissent par leur nom depuis le site. Le choix est mémorisé par origine exacte.
 - Chaque nouveau retour crée sa propre page Notion : commentaire en titre, URL précise, PNG du composant visible et contexte JSON avec console. Les envois de l’ancienne version déjà commencés terminent leur page existante sans doublon.
@@ -33,8 +33,10 @@ Parcours réel Firefox headless avec Notion simulé : connexion, raccourci, anno
 
 La version 0.1.6 capture au clic : image et contexte conservés dans une sélection en attente, validation du commentaire sans nouvelle capture, annulation sans annotation vide. Tests : carrousel simulé, changement de taille/zoom, disparition du composant, Chromium et Firefox. Une installation Brave neuve attribue bien Ctrl + . ; la popup signale une attribution absente et propose sa configuration.
 
-Release : https://github.com/ValentinLepiller/Pi2/releases/tag/v0.1.7. Vérifier `git status` à la reprise.
+Release : https://github.com/ValentinLepiller/Pi2/releases/tag/v0.1.8. Vérifier `git status` à la reprise.
 
 La version 0.1.7 ajoute le bouton « Mettre à jour » près de la version. Vérification GitHub au clic, ZIP adapté au navigateur et instructions d’installation manuelle, sans Store ni nouvelle permission. Versions comparées numériquement ; build manquant et erreur réseau gérés. Vérifié : 9 tests unitaires, typecheck, lint, builds Chromium/Firefox et accès réel à GitHub depuis les deux extensions en profils isolés ; coupure réseau et reprise sur Chromium. Le ZIP Chromium publié a été installé dans le dossier Brave existant, sans changement d’identifiant ; connexion, destination, association, deux sessions et Ctrl + . conservés. Le bouton a confirmé « Pi2 est à jour » depuis Brave. Sauvegarde des anciens fichiers : `/home/valentin/Downloads/.pi2-update-7poqfF/backup`.
+
+La version 0.1.8 renomme le bouton en « Chercher des mises à jour ». L’installation Brave reste en 0.1.7, à la demande de l’utilisateur.
 
 Le renommage du libellé du projet dans la barre latérale Codex n’a pas été effectué dans cette tâche. Le dossier de travail a été conservé.

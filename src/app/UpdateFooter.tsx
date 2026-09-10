@@ -20,11 +20,10 @@ export function UpdateFooter() {
           variant="ghost"
           className="update-button"
           disabled={update.isPending}
-          aria-label={t("Vérifier les mises à jour")}
           onClick={() => update.mutate()}
         >
           <ArrowClockwiseIcon size={12} />
-          {t(update.isPending ? "Vérification…" : "Mettre à jour")}
+          {t(update.isPending ? "Vérification…" : "Chercher des mises à jour")}
         </Button>
       </footer>
       {update.isError ? (
