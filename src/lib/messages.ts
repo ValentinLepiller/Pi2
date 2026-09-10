@@ -1,3 +1,4 @@
+import { browser } from "wxt/browser";
 import { z } from "zod";
 import { associationSchema, configurationSchema, targetSchema } from "./models";
 export const messageSchema = z.discriminatedUnion("type", [
@@ -31,7 +32,7 @@ export const messageSchema = z.discriminatedUnion("type", [
 ]);
 export type Message = z.infer<typeof messageSchema>;
 export async function request<T = unknown>(message: Message): Promise<T> {
-  const reply = await chrome.runtime.sendMessage(message);
+  const reply = await browser.runtime.sendMessage(message);
   if (!reply?.ok) throw Error(reply?.error ?? "Extension indisponible. Rechargez la page.");
   return reply.data as T;
 }

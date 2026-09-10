@@ -1,3 +1,4 @@
+import { browser } from "wxt/browser";
 // Chromium resolves fonts used inside a Shadow DOM from the document's font set.
 export function loadAnnotationFonts() {
   for (const [family, filename, weight] of [
@@ -5,7 +6,7 @@ export function loadAnnotationFonts() {
     ["VF Fira Mono", "fira-mono-latin.woff2", "500"],
   ] as const) {
     if ([...document.fonts].some((font) => font.family === family)) continue;
-    const font = new FontFace(family, `url("${chrome.runtime.getURL(`/fonts/${filename}`)}")`, {
+    const font = new FontFace(family, `url("${browser.runtime.getURL(`/fonts/${filename}`)}")`, {
       weight,
     });
     document.fonts.add(font);

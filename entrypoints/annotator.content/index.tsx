@@ -1,3 +1,4 @@
+import { browser } from "wxt/browser";
 import { defineContentScript } from "wxt/utils/define-content-script";
 import { createShadowRootUi } from "wxt/utils/content-script-ui/shadow-root";
 import { createRoot } from "react-dom/client";
@@ -26,7 +27,7 @@ export default defineContentScript({
       },
       onRemove(root) {
         root?.unmount();
-        chrome.runtime.onMessage.removeListener(control);
+        browser.runtime.onMessage.removeListener(control);
       },
     });
     const control = (
@@ -34,14 +35,14 @@ export default defineContentScript({
       sender: chrome.runtime.MessageSender,
       respond: (response: unknown) => void,
     ) => {
-      if (sender.id !== chrome.runtime.id) return;
+      if (sender.id !== browser.runtime.id) return;
       if (message.type === ANNOTATOR_STATUS) respond({ visible: true });
       if (message.type === CLOSE_ANNOTATOR) {
         ui.remove();
         respond({ closed: true });
       }
     };
-    chrome.runtime.onMessage.addListener(control);
+    browser.runtime.onMessage.addListener(control);
     ui.mount();
   },
 });

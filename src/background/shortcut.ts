@@ -1,3 +1,4 @@
+import { browser } from "wxt/browser";
 import { ANNOTATOR_STATUS, CLOSE_ANNOTATOR } from "../lib/annotation-control";
 import { getConfiguration, getConnections } from "../lib/configuration";
 import { isNotionUrl, originSchema } from "../lib/models";
@@ -7,22 +8,22 @@ export async function toggleAnnotations(commandTab?: chrome.tabs.Tab) {
   const tab =
     commandTab?.id !== undefined
       ? commandTab
-      : (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+      : (await browser.tabs.query({ active: true, currentWindow: true }))[0];
   if (tab?.id === undefined) return;
   const tabId = tab.id;
-  await chrome.storage.session.remove("shortcutError");
+  await browser.storage.session.remove("shortcutError");
   let showPopup = false;
   try {
     showPopup = await navigator.locks.request("start-session", async () => {
       if (await activeId(tabId)) {
         // A reload keeps the draft but removes the overlay: the next shortcut should resume it.
-        const visible = await chrome.tabs
+        const visible = await browser.tabs
           .sendMessage(tabId, { type: ANNOTATOR_STATUS }, { frameId: 0 })
           .then((reply) => reply?.visible === true)
           .catch(() => false);
         if (visible) {
           await navigator.locks.request(`capture:${tabId}`, () => pause(tabId));
-          await chrome.tabs
+          await browser.tabs
             .sendMessage(tabId, { type: CLOSE_ANNOTATOR }, { frameId: 0 })
             .catch(() => {});
           return false;
@@ -39,7 +40,7 @@ export async function toggleAnnotations(commandTab?: chrome.tabs.Tab) {
       return false;
     });
   } catch (error) {
-    await chrome.storage.session.set({
+    await browser.storage.session.set({
       shortcutError: {
         tabId,
         message: error instanceof Error ? error.message : "Impossible d’activer les annotations.",
@@ -49,6 +50,6 @@ export async function toggleAnnotations(commandTab?: chrome.tabs.Tab) {
   }
   if (showPopup) {
     // The user may have switched windows while the command was being handled.
-    await chrome.action.openPopup({ windowId: tab.windowId }).catch(() => {});
+    await browser.action.openPopup({ windowId: tab.windowId }).catch(() => {});
   }
 }

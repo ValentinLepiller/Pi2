@@ -1,3 +1,4 @@
+import { browser } from "wxt/browser";
 import { z } from "zod";
 import { connection, getConfiguration } from "../lib/configuration";
 import { screenshotCrop } from "../lib/screenshot";
@@ -13,7 +14,7 @@ import {
 } from "../lib/models";
 
 async function activeSessionsMap() {
-  const { activeSessions } = await chrome.storage.session.get("activeSessions");
+  const { activeSessions } = await browser.storage.session.get("activeSessions");
   return z.record(z.string(), z.string()).parse(activeSessions ?? {});
 }
 export async function activeId(tabId: number): Promise<string | undefined> {
@@ -24,7 +25,7 @@ async function setActive(tabId: number, id?: string) {
     const activeSessions = await activeSessionsMap();
     if (id) activeSessions[tabId] = id;
     else delete activeSessions[tabId];
-    await chrome.storage.session.set({ activeSessions });
+    await browser.storage.session.set({ activeSessions });
   });
 }
 export async function current(tabId: number) {
@@ -35,7 +36,7 @@ export async function pause(tabId: number) {
   const id = await activeId(tabId);
   await setActive(tabId);
   try {
-    await chrome.debugger.detach({ tabId });
+    await browser.debugger?.detach({ tabId });
   } catch {}
   if (id)
     await updateSession(id, (s) => ({
@@ -44,7 +45,7 @@ export async function pause(tabId: number) {
     }));
 }
 export async function start(tabId: number) {
-  const tab = await chrome.tabs.get(tabId);
+  const tab = await browser.tabs.get(tabId);
   const origin = originSchema.parse(tab.url);
   if (isNotionUrl(origin))
     throw Error("Sur Notion, configurez une destination depuis l’extension.");
@@ -99,20 +100,22 @@ export async function start(tabId: number) {
   await putSession(session);
   await setActive(tabId, session.id);
   try {
-    await chrome.debugger.attach({ tabId }, "1.3");
+    if (!browser.debugger) throw Error("Console indisponible sur Firefox.");
+    await browser.debugger.attach({ tabId }, "1.3");
     await updateSession(session.id, (s) => ({
       ...s,
       consoleStatus: "recording",
       consoleReason: undefined,
     }));
-    await chrome.debugger.sendCommand({ tabId }, "Runtime.enable");
-    await chrome.debugger.sendCommand({ tabId }, "Log.enable");
+    await browser.debugger.sendCommand({ tabId }, "Runtime.enable");
+    await browser.debugger.sendCommand({ tabId }, "Log.enable");
   } catch {
     await updateSession(session.id, (s) => ({
       ...s,
       consoleStatus: "unavailable",
-      consoleReason:
-        "Console indisponible : fermez les DevTools puis reprenez la session pour activer la collecte.",
+      consoleReason: import.meta.env.FIREFOX
+        ? "La collecte console n’est pas disponible dans la version Firefox."
+        : "Console indisponible : fermez les DevTools puis reprenez la session pour activer la collecte.",
     }));
   }
   try {
@@ -124,9 +127,9 @@ export async function start(tabId: number) {
   return (await getSession(session.id))!;
 }
 export async function inject(tabId: number) {
-  await chrome.scripting.executeScript({
+  await browser.scripting.executeScript({
     target: { tabId },
-    files: ["content-scripts/annotator.js"],
+    files: ["/content-scripts/annotator.js"],
   });
 }
 export async function logEvent(tabId: number, entry: ConsoleEntry) {
@@ -221,25 +224,25 @@ export function consoleEvent(method: string, value: unknown): ConsoleEntry | und
     };
 }
 export async function capture(tabId: number, target: Target) {
-  const tab = await chrome.tabs.get(tabId);
+  const tab = await browser.tabs.get(tabId);
   if (!tab.active || tab.url !== target.url)
     throw Error("Revenez sur la page sélectionnée avant de capturer.");
   let image: string;
   try {
     const result = z.object({ data: z.string() }).parse(
-      await chrome.debugger.sendCommand({ tabId }, "Page.captureScreenshot", {
+      await browser.debugger.sendCommand({ tabId }, "Page.captureScreenshot", {
         format: "png",
         captureBeyondViewport: false,
       }),
     );
     image = `data:image/png;base64,${result.data}`;
   } catch {
-    image = await chrome.tabs.captureVisibleTab(tab.windowId, { format: "png" });
+    image = await browser.tabs.captureVisibleTab(tab.windowId, { format: "png" });
   }
   const bitmap = await createImageBitmap(await (await fetch(image)).blob());
   let canvas: OffscreenCanvas;
   try {
-    const after = await chrome.tabs.get(tabId);
+    const after = await browser.tabs.get(tabId);
     if (!after.active || after.url !== target.url)
       throw Error("La page a changé pendant la capture. Réessayez.");
     const crop = screenshotCrop(target, bitmap);

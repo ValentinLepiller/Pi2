@@ -1,3 +1,4 @@
+import { browser } from "wxt/browser";
 import { defineBackground } from "wxt/utils/define-background";
 import { contentCommands, messageSchema, type Message } from "../src/lib/messages";
 import {
@@ -6,6 +7,7 @@ import {
   getConnections,
   saveConfiguration,
   setConnection,
+  removeConnection,
 } from "../src/lib/configuration";
 import { deleteSession, getSession, sessionSummaries, updateSession } from "../src/lib/db";
 import { MAX_ANNOTATIONS, summarize, type Destination } from "../src/lib/models";
@@ -23,11 +25,15 @@ import { toggleAnnotations } from "../src/background/shortcut";
 import { processQueue, retry } from "../src/background/queue";
 
 export default defineBackground(() => {
-  const ready = Promise.all([
-    chrome.storage.local.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" }),
-    chrome.storage.session.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" }),
-  ]);
-  chrome.commands.onCommand.addListener((command, tab) => {
+  const ready = Promise.all(
+    import.meta.env.FIREFOX
+      ? []
+      : [
+          browser.storage.local.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" }),
+          browser.storage.session.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" }),
+        ],
+  );
+  browser.commands.onCommand.addListener((command, tab) => {
     if (command !== "toggle-annotations") return;
     void ready
       .then(() => toggleAnnotations(tab))
@@ -35,23 +41,23 @@ export default defineBackground(() => {
         console.error("Le raccourci Pi2 n’a pas pu s’exécuter.");
       });
   });
-  chrome.runtime.onInstalled.addListener(() => {
-    void chrome.alarms.create("send-feedbacks", { periodInMinutes: 1 });
+  browser.runtime.onInstalled.addListener(() => {
+    void browser.alarms.create("send-feedbacks", { periodInMinutes: 1 });
   });
-  chrome.runtime.onStartup.addListener(() => {
-    void chrome.alarms.create("send-feedbacks", { periodInMinutes: 1 });
+  browser.runtime.onStartup.addListener(() => {
+    void browser.alarms.create("send-feedbacks", { periodInMinutes: 1 });
     void processQueue();
   });
-  chrome.alarms.onAlarm.addListener((alarm) => {
+  browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === "send-feedbacks") void processQueue();
   });
-  chrome.debugger.onEvent.addListener((source, method, params) => {
+  browser.debugger?.onEvent.addListener((source, method, params) => {
     if (source.tabId !== undefined) {
       const entry = consoleEvent(method, params);
       if (entry) void logEvent(source.tabId, entry);
     }
   });
-  chrome.debugger.onDetach.addListener((source) => {
+  browser.debugger?.onDetach.addListener((source) => {
     if (source.tabId !== undefined)
       void (async () => {
         const id = await activeId(source.tabId!);
@@ -64,24 +70,24 @@ export default defineBackground(() => {
           }));
       })();
   });
-  chrome.tabs.onRemoved.addListener((tabId) => {
+  browser.tabs.onRemoved.addListener((tabId) => {
     void pause(tabId);
   });
-  chrome.tabs.onUpdated.addListener((tabId, change) => {
+  browser.tabs.onUpdated.addListener((tabId, change) => {
     if (change.url)
       void (async () => {
         const s = await current(tabId);
         if (s && new URL(change.url!).origin !== s.origin) await pause(tabId);
       })();
   });
-  chrome.runtime.onMessage.addListener((raw, sender, respond) => {
-    if (sender.id !== chrome.runtime.id) return false;
+  browser.runtime.onMessage.addListener((raw, sender, respond) => {
+    if (sender.id !== browser.runtime.id) return false;
     const parsed = messageSchema.safeParse(raw);
     if (!parsed.success) {
       respond({ ok: false, error: "Demande invalide." });
       return false;
     }
-    const trusted = sender.url?.startsWith(chrome.runtime.getURL("")) === true;
+    const trusted = sender.url?.startsWith(browser.runtime.getURL("")) === true;
     const fromPage = !trusted;
     if (fromPage && (!contentCommands.has(parsed.data.type) || sender.frameId !== 0)) {
       respond({ ok: false, error: "Action non autorisée depuis une page." });
@@ -119,7 +125,7 @@ async function handle(message: Message, sender: chrome.runtime.MessageSender): P
         getConfiguration(),
         getConnections(),
         sessionSummaries(),
-        chrome.storage.session.get("shortcutError"),
+        browser.storage.session.get("shortcutError"),
       ]);
       return {
         configuration,
@@ -161,11 +167,7 @@ async function handle(message: Message, sender: chrome.runtime.MessageSender): P
       return info;
     }
     case "disconnect": {
-      await navigator.locks.request("connections", async () => {
-        await chrome.storage.local.set({
-          connections: (await getConnections()).filter((c) => c.id !== message.id),
-        });
-      });
+      await removeConnection(message.id);
       return;
     }
     case "discover": {
@@ -216,7 +218,7 @@ async function handle(message: Message, sender: chrome.runtime.MessageSender): P
       }));
     }
     case "start":
-      await chrome.storage.session.remove("shortcutError");
+      await browser.storage.session.remove("shortcutError");
       return summarize(await navigator.locks.request("start-session", () => start(message.tabId)));
     case "retry":
       return retry(message.id);
@@ -250,7 +252,7 @@ async function handle(message: Message, sender: chrome.runtime.MessageSender): P
         }
       : null;
   if (!s || s.status !== "draft") throw Error("Démarrez une session depuis l’extension.");
-  const tab = await chrome.tabs.get(tabId);
+  const tab = await browser.tabs.get(tabId);
   if (!tab.url || new URL(tab.url).origin !== s.origin)
     throw Error("Le site a changé. Reprenez une session depuis l’extension.");
   switch (message.type) {

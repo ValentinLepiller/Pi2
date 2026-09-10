@@ -6,5 +6,5 @@
     "types": ["chrome", "bun"],
     "jsx": "react-jsx"
   },
-  "include": ["src", "entrypoints", "tests", "*.ts"]
+  "include": ["src", "entrypoints", "tests", "*.ts", ".wxt/wxt.d.ts"]
 }

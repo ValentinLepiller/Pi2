@@ -1,3 +1,4 @@
+import { browser } from "wxt/browser";
 import axios, { type AxiosInstance } from "axios";
 import { z } from "zod";
 import { chunk } from "lodash-es";
@@ -110,7 +111,7 @@ export class Notion {
   }
   async call(method: string, url: string, data?: unknown): Promise<unknown> {
     return navigator.locks.request("notion-api", async () => {
-      const { notionNextRequestAt } = await chrome.storage.session.get("notionNextRequestAt");
+      const { notionNextRequestAt } = await browser.storage.session.get("notionNextRequestAt");
       const delay = Math.max(
         0,
         (typeof notionNextRequestAt === "number" ? notionNextRequestAt : 0) - Date.now(),
@@ -132,7 +133,7 @@ export class Notion {
         if (status === 429 || status === 529) {
           const retry = Math.max(1, Number(error.response?.headers["retry-after"]) || 60);
           const retryAt = Date.now() + retry * 1000;
-          await chrome.storage.session.set({ notionNextRequestAt: retryAt });
+          await browser.storage.session.set({ notionNextRequestAt: retryAt });
           throw new NotionError(
             "Notion est occupé. Votre envoi est conservé et sera réessayé.",
             status,
@@ -162,8 +163,8 @@ export class Notion {
           status,
         );
       } finally {
-        const { notionNextRequestAt } = await chrome.storage.session.get("notionNextRequestAt");
-        await chrome.storage.session.set({
+        const { notionNextRequestAt } = await browser.storage.session.get("notionNextRequestAt");
+        await browser.storage.session.set({
           notionNextRequestAt: Math.max(
             typeof notionNextRequestAt === "number" ? notionNextRequestAt : 0,
             Date.now() + 350,

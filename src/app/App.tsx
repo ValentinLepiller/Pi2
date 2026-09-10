@@ -1,3 +1,4 @@
+import { browser } from "wxt/browser";
 import { useState, type ReactNode } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
@@ -40,7 +41,7 @@ export function App() {
   const state = useQuery(stateQuery());
   const tab = useQuery({
     queryKey: ["active-tab"],
-    queryFn: async () => (await chrome.tabs.query({ active: true, currentWindow: true }))[0],
+    queryFn: async () => (await browser.tabs.query({ active: true, currentWindow: true }))[0],
   });
   const url = tab.data?.url ?? "";
   const isNotion = isNotionUrl(url);
@@ -81,7 +82,7 @@ export function App() {
         <ErrorNotice error={Error(state.data.shortcutError.message)} />
       )}
       <footer>
-        <span>v{chrome.runtime.getManifest().version}</span>
+        <span>v{browser.runtime.getManifest().version}</span>
       </footer>
     </main>
   );
@@ -470,7 +471,7 @@ function SitePopup({ state, tab }: { state: AppState; tab?: chrome.tabs.Tab }) {
               </p>
               <Button
                 onClick={() => {
-                  void chrome.tabs.create({ url: "https://www.notion.so" });
+                  void browser.tabs.create({ url: "https://www.notion.so" });
                 }}
               >
                 {t("Ouvrir Notion")}

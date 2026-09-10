@@ -1,6 +1,6 @@
 {
   "name": "pi2",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,7 +13,10 @@
     "check": "bun run typecheck && bun run test:unit",
     "format": "oxfmt",
     "lint": "oxlint src entrypoints tests",
-    "postinstall": "wxt prepare"
+    "postinstall": "wxt prepare",
+    "build:firefox": "wxt build -b firefox",
+    "zip:firefox": "wxt zip -b firefox",
+    "test:firefox": "node scripts/test-firefox.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

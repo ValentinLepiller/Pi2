@@ -53,22 +53,29 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      - name: Build ZIP
-        run: bun run zip
+      - name: Build Chromium and Firefox ZIPs
+        run: |
+          bun run zip
+          bun run zip:firefox
 
       - name: Verify ZIP
         run: |
           unzip -t ".output/pi2-${PI2_VERSION}-chrome.zip"
+          unzip -t ".output/pi2-${PI2_VERSION}-firefox.zip"
           bun - <<'JS'
-          const manifest = await Bun.file('.output/chrome-mv3/manifest.json').json();
-          if (manifest.version !== process.env.PI2_VERSION) throw Error('Incorrect extension version.');
+          for (const browser of ['chrome', 'firefox']) {
+            const manifest = await Bun.file(`.output/${browser}-mv3/manifest.json`).json();
+            if (manifest.version !== process.env.PI2_VERSION) throw Error(`Incorrect ${browser} version.`);
+          }
           JS
 
       - name: Keep downloadable build
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: pi2-${{ env.PI2_VERSION }}-chrome
-          path: .output/pi2-${{ env.PI2_VERSION }}-chrome.zip
+          name: pi2-${{ env.PI2_VERSION }}
+          path: |
+            .output/pi2-${{ env.PI2_VERSION }}-chrome.zip
+            .output/pi2-${{ env.PI2_VERSION }}-firefox.zip
           if-no-files-found: error
           retention-days: 14
 
@@ -77,4 +84,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh release upload "$RELEASE_TAG" ".output/pi2-${PI2_VERSION}-chrome.zip" --clobber
+        run: gh release upload "$RELEASE_TAG" ".output/pi2-${PI2_VERSION}-chrome.zip" ".output/pi2-${PI2_VERSION}-firefox.zip" --clobber

@@ -1,19 +1,38 @@
+import { browser } from "wxt/browser";
+import { openDB } from "idb";
 import { z } from "zod";
 import { configurationSchema, type Configuration, type Connection } from "./models";
+// Firefox cannot restrict storage.local to trusted contexts. Its tokens stay on the extension origin.
+const privateConnections = () =>
+  openDB("pi2-private", 1, {
+    upgrade(db) {
+      db.createObjectStore("connections");
+    },
+  });
 const empty: Configuration = { version: 1, destinations: [], associations: [] };
 export async function getConfiguration(): Promise<Configuration> {
-  const { configuration } = await chrome.storage.local.get("configuration");
+  const { configuration } = await browser.storage.local.get("configuration");
   return configurationSchema.parse(configuration ?? empty);
 }
 export async function saveConfiguration(edit: (config: Configuration) => Configuration) {
   return navigator.locks.request("configuration", async () => {
     const config = configurationSchema.parse(edit(await getConfiguration()));
-    await chrome.storage.local.set({ configuration: config });
+    await browser.storage.local.set({ configuration: config });
     return config;
   });
 }
 export async function getConnections(): Promise<Connection[]> {
-  const { connections } = await chrome.storage.local.get("connections");
+  let connections: unknown;
+  if (import.meta.env.FIREFOX) {
+    const db = await privateConnections();
+    try {
+      connections = await db.get("connections", "all");
+    } finally {
+      db.close();
+    }
+  } else {
+    ({ connections } = await browser.storage.local.get("connections"));
+  }
   return z
     .array(z.object({ id: z.string(), name: z.string(), token: z.string() }))
     .parse(connections ?? []);
@@ -23,11 +42,25 @@ export async function connection(id: string) {
   if (!found) throw Error("Reconnectez Notion dans les réglages.");
   return found;
 }
-export async function setConnection(value: Connection) {
+async function changeConnections(edit: (connections: Connection[]) => Connection[]) {
   return navigator.locks.request("connections", async () => {
-    const connections = await getConnections();
-    await chrome.storage.local.set({
-      connections: [...connections.filter((c) => c.id !== value.id), value],
-    });
+    const connections = edit(await getConnections());
+    if (import.meta.env.FIREFOX) {
+      const db = await privateConnections();
+      try {
+        await db.put("connections", connections, "all");
+      } finally {
+        db.close();
+      }
+    } else await browser.storage.local.set({ connections });
   });
+}
+export async function setConnection(value: Connection) {
+  await changeConnections((connections) => [
+    ...connections.filter((c) => c.id !== value.id),
+    value,
+  ]);
+}
+export async function removeConnection(id: string) {
+  await changeConnections((connections) => connections.filter((c) => c.id !== id));
 }
