@@ -22,6 +22,7 @@ import {
 } from "../lib/models";
 import { request, type Message } from "../lib/messages";
 import { queryClient, stateQuery, type AppState } from "./client";
+import { UpdateFooter } from "./UpdateFooter";
 
 function useAction() {
   return useMutation({
@@ -100,9 +101,7 @@ export function App() {
           )}
         </div>
       )}
-      <footer>
-        <span>v{browser.runtime.getManifest().version}</span>
-      </footer>
+      <UpdateFooter />
     </main>
   );
 }

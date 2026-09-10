@@ -222,6 +222,7 @@ input::placeholder {
 }
 footer {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
   padding-top: 18px;
@@ -229,6 +230,19 @@ footer {
   border-top: 1px dashed var(--vf-line);
   color: var(--vf-muted);
   font-size: 9px;
+}
+.update-button {
+  min-height: 0;
+  padding: 4px;
+  font-size: 11px;
+}
+.update-notice ol {
+  list-style: decimal;
+  padding-left: 20px;
+}
+.update-notice p,
+.update-notice ol {
+  margin-top: 8px;
 }
 .site-link {
   overflow-wrap: anywhere;

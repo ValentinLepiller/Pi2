@@ -9,6 +9,45 @@ import {
 import { screenshotCrop } from "../src/lib/screenshot";
 import { messageSchema } from "../src/lib/messages";
 import { appendConsole, consoleEvent } from "../src/background/sessions";
+import { releaseUpdate } from "../src/lib/releases";
+
+test("les mises à jour choisissent le build du navigateur et ne proposent aucun retour en arrière", () => {
+  const release = {
+    tag_name: "v0.1.10",
+    draft: false,
+    prerelease: false,
+    assets: ["chrome", "firefox", "sources"].map((browser) => ({
+      name: `pi2-0.1.10-${browser}.zip`,
+      state: "uploaded",
+    })),
+  };
+  for (const browser of ["chrome", "firefox"] as const) {
+    expect(releaseUpdate(release, "0.1.9", browser)?.downloadUrl).toBe(
+      `https://github.com/ValentinLepiller/Pi2/releases/download/v0.1.10/pi2-0.1.10-${browser}.zip`,
+    );
+  }
+  for (const version of ["0.1.10", "0.1.11", "0.2.0", "1.0.0"]) {
+    expect(releaseUpdate(release, version, "chrome")).toBeNull();
+  }
+  expect(releaseUpdate({ ...release, assets: [] }, "0.1.9", "chrome")).toEqual({
+    version: "0.1.10",
+    downloadUrl: null,
+  });
+  expect(
+    releaseUpdate(
+      { ...release, assets: [{ name: "pi2-0.1.10-chrome.zip", state: "new" }] },
+      "0.1.9",
+      "chrome",
+    )?.downloadUrl,
+  ).toBeNull();
+  for (const invalid of [
+    { ...release, prerelease: true },
+    { ...release, tag_name: "../other" },
+    {},
+  ]) {
+    expect(() => releaseUpdate(invalid, "0.1.9", "chrome")).toThrow();
+  }
+});
 
 test("toutes les pages d’un site partagent leur destination, sans mélanger ports et sous-domaines", () => {
   expect(originSchema.parse("https://staging.monapp.fr/orders?id=1")).toBe(

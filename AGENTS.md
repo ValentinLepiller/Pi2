@@ -28,4 +28,6 @@ Envoi Notion : une annotation = une page, avec son image et son contexte JSON pr
 
 Livraison : `.github/workflows/release.yml` construit le code du tag publié (`vX.Y.Z`) et joint les ZIP Chromium et Firefox à la release GitHub. Firefox 140+ : build non signé pour chargement temporaire, sans collecte console. Une installation permanente nécessite la signature Mozilla. Le lancement manuel produit seulement un artefact de test. La version est dérivée du tag dans la CI, sans modifier la version locale. Pas de GitHub Packages.
 
+Distribution via GitHub, sans Store prévu. Le bouton près de la version vérifie les releases uniquement au clic et propose le ZIP du navigateur ; remplacement des fichiers et rechargement restent manuels.
+
 Reprise du projet : lire `WORKLOG.md` pour l’état vérifié et les changements encore locaux. Avant de recharger Pi2 dans Brave, vérifier qu’aucune annotation ni saisie de formulaire n’est en cours ; conserver le dossier d’installation et les données du navigateur.
