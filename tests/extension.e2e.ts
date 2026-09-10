@@ -548,7 +548,52 @@ test("respecter Retry-After même lorsque l’utilisateur réessaie immédiateme
   }
 });
 
-test("capturer uniquement le composant sans interface Pi2, même après défilement ou partiellement hors écran", async () => {
+async function screenshotPixels({
+  url,
+  target,
+}: {
+  url: string;
+  target: {
+    rect: { x: number; y: number; width: number; height: number };
+    viewport: { width: number };
+  };
+}) {
+  const bitmap = await createImageBitmap(await (await fetch(url)).blob());
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(bitmap, 0, 0);
+  const data = ctx.getImageData(0, 0, bitmap.width, bitmap.height).data;
+  const scale = bitmap.width / target.viewport.width;
+  const left = Math.max(0, target.rect.x * scale);
+  const top = Math.max(0, target.rect.y * scale);
+  const right = Math.min(bitmap.width, (target.rect.x + target.rect.width) * scale);
+  const bottom = Math.min(bitmap.height, (target.rect.y + target.rect.height) * scale);
+  let unexpected = 0,
+    green = 0;
+  for (let y = 0; y < bitmap.height; y++) {
+    for (let x = 0; x < bitmap.width; x++) {
+      const i = (y * bitmap.width + x) * 4;
+      const inside = x > left + 6 && x < right - 6 && y > top + 6 && y < bottom - 6;
+      const outside = x < left - 6 || x > right + 6 || y < top - 6 || y > bottom + 6;
+      if (!inside && !outside) {
+        if (data[i] === 161 && data[i + 1] === 214 && data[i + 2] === 176) green++;
+        continue;
+      }
+      if (
+        data[i] !== (inside ? 112 : 255) ||
+        data[i + 1] !== (inside ? 64 : 255) ||
+        data[i + 2] !== (inside ? 176 : 255) ||
+        data[i + 3] !== 255
+      )
+        unexpected++;
+    }
+  }
+  const result = { width: bitmap.width, height: bitmap.height, unexpected, green };
+  bitmap.close();
+  return result;
+}
+
+test("capturer toute la fenêtre avec le composant encadré sans interface Pi2, même après défilement ou zoom", async () => {
   const { context, worker, id, profile } = await launch(undefined, 2);
   try {
     await mockNotion(context);
@@ -577,8 +622,11 @@ test("capturer uniquement le composant sans interface Pi2, même après défilem
     expect(configured).toBe(true);
     const site = await context.newPage();
     await site.goto("http://127.0.0.1:4319");
-    // A uniform component makes every overlay pixel visible in the exported image.
+    // Distinct uniform backgrounds reveal any Pi2 controls or misplaced highlight in the PNG.
     await site.evaluate(() => {
+      document.body.replaceChildren();
+      document.body.style.background = "white";
+      document.documentElement.style.background = "white";
       const component = document.createElement("div");
       component.id = "capture-component";
       component.style.cssText =
@@ -597,6 +645,7 @@ test("capturer uniquement le composant sans interface Pi2, même après défilem
     expect(started.ok).toBe(true);
     const overlay = site.locator("pi2-annotator");
     await expect(overlay.getByText("Console active", { exact: false })).toBeVisible();
+    let visibleSize: { width: number; height: number };
     for (const clipped of [false, true]) {
       if (clipped) {
         await site.evaluate(() => {
@@ -613,22 +662,27 @@ test("capturer uniquement le composant sans interface Pi2, même après défilem
         started.data.id,
       );
       const dataUrl = exported.data.screenshots.at(-1).dataUrl;
-      const pixels = await options.evaluate(async (url) => {
+      const visibleImage = await worker.evaluate(async (tabId) => {
+        const shot = (await chrome.debugger.sendCommand({ tabId }, "Page.captureScreenshot", {
+          format: "png",
+          captureBeyondViewport: false,
+        })) as { data: string };
+        return `data:image/png;base64,${shot.data}`;
+      }, tabId);
+      visibleSize = await options.evaluate(async (url) => {
         const bitmap = await createImageBitmap(await (await fetch(url)).blob());
-        const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-        const ctx = canvas.getContext("2d")!;
-        ctx.drawImage(bitmap, 0, 0);
-        const data = ctx.getImageData(0, 0, bitmap.width, bitmap.height).data;
-        let altered = 0;
-        for (let i = 0; i < data.length; i += 4) {
-          if (data[i] !== 112 || data[i + 1] !== 64 || data[i + 2] !== 176 || data[i + 3] !== 255)
-            altered++;
-        }
-        const result = { width: bitmap.width, height: bitmap.height, altered };
+        const width = Math.min(1600, bitmap.width);
+        const size = { width, height: Math.round((bitmap.height * width) / bitmap.width) };
         bitmap.close();
-        return result;
-      }, dataUrl);
-      expect(pixels).toEqual({ width: 1600, height: clipped ? 587 : 640, altered: 0 });
+        return size;
+      }, visibleImage);
+
+      const pixels = await options.evaluate(screenshotPixels, {
+        url: dataUrl,
+        target: exported.data.annotations.at(-1).target,
+      });
+      expect(pixels).toMatchObject({ ...visibleSize, unexpected: 0 });
+      expect(pixels.green).toBeGreaterThan(200);
       await writeFile(
         `test-results/component-${clipped ? "clipped" : "capture"}.png`,
         Buffer.from(dataUrl.split(",")[1], "base64"),
@@ -702,22 +756,14 @@ test("capturer uniquement le composant sans interface Pi2, même après défilem
         started.data.id,
       );
       expect(exported.data.annotations.at(-1).target.text).toBe("");
-      const size = await options.evaluate(async (url) => {
-        const bitmap = await createImageBitmap(await (await fetch(url)).blob());
-        const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-        const ctx = canvas.getContext("2d")!;
-        ctx.drawImage(bitmap, 0, 0);
-        const pixels = ctx.getImageData(0, 0, bitmap.width, bitmap.height).data;
-        let altered = 0;
-        for (let i = 0; i < pixels.length; i += 4)
-          if (pixels[i] !== 112 || pixels[i + 1] !== 64 || pixels[i + 2] !== 176) altered++;
-        const size = { width: bitmap.width, height: bitmap.height, altered };
-        bitmap.close();
-        return size;
-      }, exported.data.screenshots.at(-1).dataUrl);
-      expect(size.altered).toBe(0);
-      expect(Math.abs(size.width - capturedTarget.width * 2)).toBeLessThanOrEqual(2);
-      expect(Math.abs(size.height - capturedTarget.height * 2)).toBeLessThanOrEqual(2);
+      const savedTarget = exported.data.annotations.at(-1).target;
+      expect(savedTarget.rect).toMatchObject(capturedTarget);
+      const size = await options.evaluate(screenshotPixels, {
+        url: exported.data.screenshots.at(-1).dataUrl,
+        target: savedTarget,
+      });
+      expect(size).toMatchObject({ ...visibleSize!, unexpected: 0 });
+      expect(size.green).toBeGreaterThan(200);
       // Cancelling a captured selection must not add an empty feedback.
       await component.click();
       await overlay.getByLabel("Commentaire", { exact: true }).fill("Retour annulé");

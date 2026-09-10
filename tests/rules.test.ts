@@ -6,7 +6,7 @@ import {
   originSchema,
   MAX_CONSOLE_BYTES,
 } from "../src/lib/models";
-import { screenshotCrop } from "../src/lib/screenshot";
+import { screenshotHighlight } from "../src/lib/screenshot";
 import { messageSchema } from "../src/lib/messages";
 import { appendConsole, consoleEvent } from "../src/background/sessions";
 import { releaseUpdate } from "../src/lib/releases";
@@ -154,35 +154,35 @@ test("une console très bavarde conserve les événements récents sans bloquer 
   );
 });
 
-test("la capture cadre le composant à l’échelle réelle et coupe uniquement les parties hors fenêtre", () => {
+test("le cadre de capture suit le composant à l’échelle de l’image et reste dans la fenêtre", () => {
   const viewport = { width: 1000, height: 800, dpr: 2, scrollX: 0, scrollY: 600 };
   expect(
-    screenshotCrop(
+    screenshotHighlight(
       { viewport, rect: { x: 100, y: 50, width: 200, height: 80 } },
       { width: 2000, height: 1600 },
     ),
   ).toEqual({ x: 200, y: 100, width: 400, height: 160 });
   expect(
-    screenshotCrop(
+    screenshotHighlight(
       { viewport, rect: { x: -10, y: -20, width: 100, height: 80 } },
       { width: 1000, height: 800 },
     ),
   ).toEqual({ x: 0, y: 0, width: 90, height: 60 });
   expect(
-    screenshotCrop(
+    screenshotHighlight(
       { viewport, rect: { x: 950.5, y: 780.5, width: 100, height: 80 } },
       { width: 1000, height: 800 },
     ),
   ).toEqual({ x: 950, y: 780, width: 50, height: 20 });
   // A viewport capture can be shorter than the page viewport; pixels still have a uniform scale.
   expect(
-    screenshotCrop(
+    screenshotHighlight(
       { viewport, rect: { x: 100, y: 50, width: 200, height: 80 } },
       { width: 1000, height: 600 },
     ),
   ).toEqual({ x: 100, y: 50, width: 200, height: 80 });
   expect(() =>
-    screenshotCrop(
+    screenshotHighlight(
       { viewport, rect: { x: 1100, y: 50, width: 100, height: 80 } },
       { width: 1000, height: 800 },
     ),

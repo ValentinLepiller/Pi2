@@ -1,7 +1,7 @@
 import { browser } from "wxt/browser";
 import { z } from "zod";
 import { connection, getConfiguration } from "../lib/configuration";
-import { screenshotCrop } from "../lib/screenshot";
+import { screenshotHighlight } from "../lib/screenshot";
 import { getSession, putSession, sessionSummaries, updateSession } from "../lib/db";
 import {
   MAX_LOGS,
@@ -246,13 +246,24 @@ export async function capture(tabId: number, target: Target) {
     const after = await browser.tabs.get(tabId);
     if (!after.active || after.url !== target.url)
       throw Error("La page a changé pendant la capture. Réessayez.");
-    const crop = screenshotCrop(target, bitmap);
-    const width = Math.min(1600, crop.width);
-    const height = Math.max(1, Math.round((crop.height * width) / crop.width));
+    const width = Math.min(1600, bitmap.width);
+    const height = Math.max(1, Math.round((bitmap.height * width) / bitmap.width));
     canvas = new OffscreenCanvas(width, height);
-    canvas
-      .getContext("2d")!
-      .drawImage(bitmap, crop.x, crop.y, crop.width, crop.height, 0, 0, width, height);
+    const context = canvas.getContext("2d")!;
+    context.drawImage(bitmap, 0, 0, width, height);
+    const highlight = screenshotHighlight(target, canvas);
+    const lineWidth = Math.min(3, highlight.width / 2, highlight.height / 2);
+    context.strokeStyle = "#a1d6b0";
+    context.lineWidth = lineWidth;
+    context.shadowColor = "#132719";
+    context.shadowBlur = 2;
+    // Keep the frame inside the visible rectangle, including at the viewport edges.
+    context.strokeRect(
+      highlight.x + lineWidth / 2,
+      highlight.y + lineWidth / 2,
+      highlight.width - lineWidth,
+      highlight.height - lineWidth,
+    );
   } finally {
     bitmap.close();
   }

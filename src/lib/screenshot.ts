@@ -1,6 +1,6 @@
 import type { Target } from "./models";
 
-export function screenshotCrop(
+export function screenshotHighlight(
   target: Pick<Target, "rect" | "viewport">,
   image: { width: number; height: number },
 ) {

@@ -267,10 +267,26 @@ try {
   assert.equal(exported.console.length, 0);
   assert.ok(!JSON.stringify(exported).includes("ntn_fixture_only_not_a_real_token"));
   const pixels = await asyncExec(
-    'const bitmap=await createImageBitmap(await(await fetch(arguments[0])).blob());const c=new OffscreenCanvas(bitmap.width,bitmap.height);const ctx=c.getContext("2d");ctx.drawImage(bitmap,0,0);const d=ctx.getImageData(0,0,c.width,c.height).data;let altered=0;for(let i=0;i<d.length;i+=4)if(d[i]!==112||d[i+1]!==64||d[i+2]!==176||d[i+3]!==255)altered++;return {width:c.width,height:c.height,altered};',
-    [exported.screenshots[0].dataUrl],
+    `const bitmap=await createImageBitmap(await(await fetch(arguments[0])).blob());
+    const target=arguments[1];
+    const c=new OffscreenCanvas(bitmap.width,bitmap.height), ctx=c.getContext('2d');
+    ctx.drawImage(bitmap,0,0);
+    const scale=c.width/target.viewport.width, r=target.rect;
+    const pixel=(x,y)=>Array.from(ctx.getImageData(Math.floor(x),Math.floor(y),1,1).data);
+    const result={width:c.width,height:c.height,
+      center:pixel((r.x+r.width/2)*scale,(r.y+r.height/2)*scale),
+      border:pixel(r.x*scale+1,(r.y+r.height/2)*scale),
+      corner:pixel(10,10),bottom:pixel(c.width/2,c.height-25)};
+    bitmap.close();return result;`,
+    [exported.screenshots[0].dataUrl, exported.annotations[0].target],
   );
-  assert.deepEqual(pixels, { width: 450, height: 180, altered: 0 });
+  const viewport = exported.annotations[0].target.viewport;
+  assert.ok(pixels.width > 450 && pixels.height > 180);
+  assert.ok(Math.abs(pixels.width / pixels.height - viewport.width / viewport.height) < 0.02);
+  assert.deepEqual(pixels.center, [112, 64, 176, 255]);
+  assert.deepEqual(pixels.border, [161, 214, 176, 255]);
+  assert.deepEqual(pixels.corner, [255, 255, 255, 255]);
+  assert.deepEqual(pixels.bottom, [255, 255, 255, 255]);
   const security = await asyncExec(
     'return (await browser.scripting.executeScript({target:{tabId:arguments[0]},func:async()=>({local:await browser.storage.local.get("connections"),reply:await browser.runtime.sendMessage({type:"state"})})}))[0].result;',
     [tab.id],
@@ -295,7 +311,9 @@ try {
     "return Services.wm.getMostRecentWindow('navigator:browser').pi2AuthChecks;",
   );
   assert.ok(authChecks.length > 10 && authChecks.every(Boolean));
-  console.log("PASS Firefox connection, annotation, crop, security, Notion export, disconnect");
+  console.log(
+    "PASS Firefox connection, viewport capture with highlight, security, Notion export, disconnect",
+  );
 } finally {
   server?.close();
   if (s?.sessionId)

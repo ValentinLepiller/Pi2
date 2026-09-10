@@ -169,9 +169,9 @@ try {
     return result;
   }, exported.data.screenshots[1].dataUrl);
   const target = exported.data.annotations[1].target;
-  expect(dimensions.width).toBeLessThan(target.viewport.width / 2);
+  expect(dimensions.width).toBeGreaterThan(target.viewport.width / 2);
   expect(
-    Math.abs(dimensions.width / dimensions.height - target.rect.width / target.rect.height),
+    Math.abs(dimensions.width / dimensions.height - target.viewport.width / target.viewport.height),
   ).toBeLessThan(0.1);
   await shortcut();
   await expect(overlay).toHaveCount(0);

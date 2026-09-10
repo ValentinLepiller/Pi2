@@ -22,7 +22,7 @@ L’overlay doit neutraliser le zoom CSS de ses ancêtres : les coordonnées `ge
 
 Capturer l’image et le contexte dès le clic de sélection, avant la saisie. La validation ajoute le commentaire à cette capture conservée, sans recapturer ni relire le DOM. Une capture annulée ne crée aucun retour.
 
-Captures PNG recadrées sur la partie visible du composant sélectionné, sans encadrement ajouté ni interface Pi2. Masquer le host via un attribut et une règle interne au Shadow DOM, pour éviter les conflits avec `all: initial !important`.
+Captures PNG de toute la zone visible de la page (1 600 px maximum en largeur), avec un cadre vert sur la partie visible du composant sélectionné, ajouté au PNG après capture. Aucune interface Pi2 dans l’image. Masquer le host via un attribut et une règle interne au Shadow DOM, pour éviter les conflits avec `all: initial !important`.
 
 Envoi Notion : une annotation = une page, avec son image et son contexte JSON propre. Dédupliquer chaque annotation lors des reprises.
 
