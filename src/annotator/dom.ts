@@ -1,5 +1,16 @@
 import type { Target } from "../lib/models";
 export const ANNOTATOR_HOST = "pi2-annotator";
+export function syncViewportZoom(host: HTMLElement) {
+  // Bounding rectangles already include ancestor zoom; the overlay must use viewport pixels.
+  let zoom = 1;
+  for (let parent = host.parentElement; parent; parent = parent.parentElement) {
+    const value = Number.parseFloat(getComputedStyle(parent).zoom);
+    if (Number.isFinite(value) && value > 0) zoom *= value;
+  }
+  const inverse = String(1 / zoom);
+  if (host.style.getPropertyValue("--pi2-viewport-zoom") !== inverse)
+    host.style.setProperty("--pi2-viewport-zoom", inverse);
+}
 export function ownElement(event: Event) {
   return event
     .composedPath()

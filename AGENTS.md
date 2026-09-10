@@ -18,6 +18,8 @@ Exporter les icônes PNG depuis `public/icon.svg` avec un fond transparent (`mag
 
 Raccourci natif Ctrl + . (Command + . sur macOS) : annotations actives → pause, site lié → démarrage/reprise, sinon ouverture de la popup. Ne pas injecter de capteur clavier sur tous les sites. Tester les touches dans un affichage Xvfb isolé.
 
+L’overlay doit neutraliser le zoom CSS de ses ancêtres : les coordonnées `getBoundingClientRect()` incluent déjà ce zoom. Garder le cadre, le commentaire et les repères alignés après un changement de zoom du site.
+
 Captures PNG recadrées sur la partie visible du composant sélectionné, sans encadrement ajouté ni interface Pi2. Masquer le host via un attribut et une règle interne au Shadow DOM, pour éviter les conflits avec `all: initial !important`.
 
 Envoi Notion : une annotation = une page, avec son image et son contexte JSON propre. Dédupliquer chaque annotation lors des reprises.

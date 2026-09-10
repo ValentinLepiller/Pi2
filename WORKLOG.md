@@ -4,7 +4,7 @@
 
 ## Application
 
-Extension Chromium 127+ et Firefox 140+, version source 0.1.4. La dernière installation locale dans Brave reste en version 0.1.2. Interface dark dans la popup uniquement. PAT Notion ou clé d’intégration interne ; pas d’OAuth, de backend ni d’agent branché.
+Extension Chromium 127+ et Firefox 140+, version source 0.1.5. La dernière installation locale dans Brave reste en version 0.1.2. Interface dark dans la popup uniquement. PAT Notion ou clé d’intégration interne ; pas d’OAuth, de backend ni d’agent branché.
 
 - Les pages de destination se préparent depuis Notion et se choisissent par leur nom depuis le site. Le choix est mémorisé par origine exacte.
 - Chaque nouveau retour crée sa propre page Notion : commentaire en titre, URL précise, PNG du composant visible et contexte JSON avec console. Les envois de l’ancienne version déjà commencés terminent leur page existante sans doublon.
@@ -29,6 +29,8 @@ TypeScript, lint, 8 tests unitaires et 5 parcours Chromium ont été validés au
 
 La version 0.1.4 ajoute Firefox : API `browser` de WXT, arrière-plan MV3 sans debugger, captures via `captureVisibleTab`, clés en IndexedDB privée. Firefox ne collecte pas la console. Le ZIP non signé se charge temporairement dans `about:debugging` ; la signature Mozilla reste nécessaire pour une installation permanente.
 
-Parcours réel Firefox headless avec Notion simulé : connexion, raccourci, annotation, PNG recadré sans pixels Pi2, refus des commandes privilégiées depuis les pages, export Notion et déconnexion. Les cinq parcours Chromium passent également. Scripts et builds des deux navigateurs sont disponibles. Release : https://github.com/ValentinLepiller/Pi2/releases/tag/v0.1.4. Vérifier `git status` à la reprise.
+Parcours réel Firefox headless avec Notion simulé : connexion, raccourci, annotation, PNG recadré sans pixels Pi2, refus des commandes privilégiées depuis les pages, export Notion et déconnexion. Les cinq parcours Chromium passent également. Scripts et builds des deux navigateurs sont disponibles. La version 0.1.5 corrige le décalage du sélecteur sur les sites appliquant un zoom CSS à html/body (reproduit sur Galadrim en grand écran). Cadre, éditeur, repères et capture vérifiés sous zoom imbriqué sur Chromium et Firefox ; changement de zoom pendant la saisie couvert sur Chromium. La bordure du raccourci a également été retirée.
+
+Release : https://github.com/ValentinLepiller/Pi2/releases/tag/v0.1.5. Vérifier `git status` à la reprise.
 
 Le renommage du libellé du projet dans la barre latérale Codex n’a pas été effectué dans cette tâche. Le dossier de travail a été conservé.

@@ -166,8 +166,6 @@ input::placeholder {
   gap: 4px;
   margin-left: auto;
   padding: 3px 5px;
-  border: 1px solid currentColor;
-  border-radius: 3px;
   font: 12px/1 var(--vf-mono);
   opacity: 0.7;
   white-space: nowrap;

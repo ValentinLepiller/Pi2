@@ -634,6 +634,73 @@ test("capturer uniquement le composant sans interface Pi2, même après défilem
         Buffer.from(dataUrl.split(",")[1], "base64"),
       );
     }
+    await test.step("rester aligné quand le site zoome html et body, même pendant la saisie", async () => {
+      await site.evaluate(() => {
+        document.documentElement.style.zoom = "1.25";
+        document.body.style.zoom = "1.2";
+        const component = document.querySelector<HTMLElement>("#capture-component")!;
+        Object.assign(component.style, {
+          left: "100px",
+          top: "200px",
+          width: "200px",
+          height: "100px",
+        });
+        window.scrollTo(0, 0);
+      });
+      const component = site.locator("#capture-component");
+      await component.hover();
+      const aligned = async () => {
+        const target = (await component.boundingBox())!;
+        const highlight = await overlay.locator(".vf-highlight").boundingBox();
+        return (
+          !!highlight &&
+          ["x", "y", "width", "height"].every(
+            (key) =>
+              Math.abs(highlight[key as keyof typeof target] - target[key as keyof typeof target]) <
+              0.1,
+          )
+        );
+      };
+      await expect.poll(aligned).toBe(true);
+      await component.click();
+      await overlay
+        .getByLabel("Commentaire", { exact: true })
+        .fill("Le zoom du site ne doit pas déplacer le cadre.");
+      // The site changes its scale without moving the pointer or resizing the window.
+      await site.evaluate(() => {
+        document.documentElement.style.zoom = "0.75";
+      });
+      await expect.poll(aligned).toBe(true);
+      await expect
+        .poll(async () => {
+          const target = (await component.boundingBox())!;
+          const editor = (await overlay.locator(".vf-editor").boundingBox())!;
+          return (
+            Math.abs(editor.x - (target.x + target.width + 14)) < 0.1 &&
+            Math.abs(editor.y - target.y) < 0.1
+          );
+        })
+        .toBe(true);
+      await overlay.getByRole("button", { name: "Ajouter", exact: false }).click();
+      const marker = overlay.getByLabel("Modifier l’annotation 3");
+      await expect(marker).toBeVisible();
+      const target = (await component.boundingBox())!;
+      const position = (await marker.boundingBox())!;
+      expect(Math.abs(position.x + position.width / 2 - target.x)).toBeLessThan(0.1);
+      expect(Math.abs(position.y + position.height / 2 - target.y)).toBeLessThan(0.1);
+      const exported = await options.evaluate(
+        async (sessionId) => chrome.runtime.sendMessage({ type: "export-session", id: sessionId }),
+        started.data.id,
+      );
+      const size = await options.evaluate(async (url) => {
+        const bitmap = await createImageBitmap(await (await fetch(url)).blob());
+        const size = { width: bitmap.width, height: bitmap.height };
+        bitmap.close();
+        return size;
+      }, exported.data.screenshots.at(-1).dataUrl);
+      expect(Math.abs(size.width - target.width * 2)).toBeLessThanOrEqual(2);
+      expect(Math.abs(size.height - target.height * 2)).toBeLessThanOrEqual(2);
+    });
   } finally {
     await context.close();
     await rm(profile, { recursive: true, force: true });

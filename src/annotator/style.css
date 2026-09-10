@@ -6,6 +6,7 @@
   z-index: 2147483647 !important;
   pointer-events: none !important;
   color-scheme: dark !important;
+  zoom: var(--pi2-viewport-zoom, 1) !important;
 }
 :host([data-pi2-capturing]) {
   display: none !important;

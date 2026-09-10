@@ -10,7 +10,7 @@ import {
 } from "@phosphor-icons/react";
 import { request } from "../lib/messages";
 import type { Annotation, SessionSummary } from "../lib/models";
-import { describe, locate, ownElement, selectable } from "./dom";
+import { describe, locate, ownElement, selectable, syncViewportZoom } from "./dom";
 
 type Current = SessionSummary & { annotations: Omit<Annotation, "screenshot">[] };
 export function Overlay({ host, close }: { host: HTMLElement; close: () => void }) {
@@ -49,6 +49,7 @@ export function Overlay({ host, close }: { host: HTMLElement; close: () => void 
       if (!raf)
         raf = requestAnimationFrame(() => {
           raf = 0;
+          syncViewportZoom(host);
           redraw((n) => n + 1);
         });
     };
@@ -56,10 +57,18 @@ export function Overlay({ host, close }: { host: HTMLElement; close: () => void 
     window.addEventListener("resize", update);
     const observer = new MutationObserver(update);
     observer.observe(document.body, { childList: true, subtree: true });
+    const zoomObserver = new MutationObserver(update);
+    for (let parent = host.parentElement; parent; parent = parent.parentElement)
+      zoomObserver.observe(parent, {
+        attributes: true,
+        attributeFilter: ["style", "class"],
+      });
+    update();
     return () => {
       window.removeEventListener("scroll", update, true);
       window.removeEventListener("resize", update);
       observer.disconnect();
+      zoomObserver.disconnect();
       cancelAnimationFrame(raf);
     };
   }, []);

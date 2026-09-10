@@ -92,7 +92,7 @@ try {
       if (!req.url.startsWith("/v1")) {
         res.setHeader("content-type", "text/html");
         res.end(
-          '<html><title>Pi2 Firefox test</title><body style="margin:0"><div id="target" style="position:absolute;left:100px;top:100px;width:300px;height:120px;background:rgb(112,64,176)"></div></body></html>',
+          '<html style="zoom:1.25"><title>Pi2 Firefox test</title><body style="margin:0;zoom:1.2"><div id="target" style="position:absolute;left:100px;top:100px;width:300px;height:120px;background:rgb(112,64,176)"></div></body></html>',
         );
         return;
       }
@@ -230,6 +230,11 @@ try {
       'return !!document.querySelector("pi2-annotator")?.shadowRoot?.querySelector("textarea");',
     ),
   );
+  await until(() =>
+    exec(
+      `const target=document.querySelector('#target').getBoundingClientRect();const highlight=document.querySelector('pi2-annotator').shadowRoot.querySelector('.vf-highlight').getBoundingClientRect();return ['x','y','width','height'].every(key=>Math.abs(target[key]-highlight[key])<0.1);`,
+    ),
+  );
   const textarea = await exec(
     'return document.querySelector("pi2-annotator").shadowRoot.querySelector("textarea");',
   );
@@ -262,7 +267,7 @@ try {
     'const bitmap=await createImageBitmap(await(await fetch(arguments[0])).blob());const c=new OffscreenCanvas(bitmap.width,bitmap.height);const ctx=c.getContext("2d");ctx.drawImage(bitmap,0,0);const d=ctx.getImageData(0,0,c.width,c.height).data;let altered=0;for(let i=0;i<d.length;i+=4)if(d[i]!==112||d[i+1]!==64||d[i+2]!==176||d[i+3]!==255)altered++;return {width:c.width,height:c.height,altered};',
     [exported.screenshots[0].dataUrl],
   );
-  assert.deepEqual(pixels, { width: 300, height: 120, altered: 0 });
+  assert.deepEqual(pixels, { width: 450, height: 180, altered: 0 });
   const security = await asyncExec(
     'return (await browser.scripting.executeScript({target:{tabId:arguments[0]},func:async()=>({local:await browser.storage.local.get("connections"),reply:await browser.runtime.sendMessage({type:"state"})})}))[0].result;',
     [tab.id],
