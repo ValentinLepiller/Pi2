@@ -4,7 +4,7 @@ Extension Chromium 127+ pour envoyer des annotations, captures PNG, contexte des
 
 ## Installer
 
-Décompresser `pi2-0.1.2-chrome.zip` dans un dossier permanent. Dans `chrome://extensions`, activer **Mode développeur**, choisir **Charger l’extension non empaquetée**, puis épingler Pi2.
+Télécharger `pi2-VERSION-chrome.zip` dans les **Assets** de la [dernière release GitHub](https://github.com/ValentinLepiller/Pi2/releases/latest), puis le décompresser dans un dossier permanent. Dans `chrome://extensions` (ou `brave://extensions`), activer **Mode développeur**, choisir **Charger l’extension non empaquetée**, puis épingler Pi2.
 
 Depuis les sources : `bun install` puis `bun run build`. Charger `.output/chrome-mv3`.
 
@@ -34,3 +34,9 @@ bun run zip
 ```
 
 Installer le navigateur de test avec `bunx playwright install chromium`. Les tests utilisent un profil isolé et une API Notion simulée. Le test du raccourci nécessite aussi `xvfb-run` et `xdotool`.
+
+## Publier une version
+
+Sur GitHub, créer et publier une release depuis `main` avec un nouveau tag `vX.Y.Z` (ex. `v0.2.0`). Le workflow **Build extension** vérifie le code, construit le ZIP et l’ajoute aux Assets de la release. La version de l’extension suit le tag ; aucun secret supplémentaire à configurer. Un brouillon de release ne lance pas le build.
+
+Pour vérifier un build sans publier, lancer **Actions → Build extension → Run workflow**. Le ZIP est disponible dans les artefacts de cette exécution.
