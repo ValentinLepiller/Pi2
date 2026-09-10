@@ -84,6 +84,7 @@ export type Session = {
   createdAt: string;
   updatedAt: string;
   annotations: Annotation[];
+  pendingCapture?: Omit<Annotation, "body">;
   console: ConsoleEntry[];
   consoleBytes?: number;
   droppedLogs: number;
@@ -99,12 +100,15 @@ export type Session = {
   uploads: Record<string, string>;
   completedAt?: string;
 };
-export type SessionSummary = Omit<Session, "annotations" | "console" | "uploads"> & {
+export type SessionSummary = Omit<
+  Session,
+  "annotations" | "pendingCapture" | "console" | "uploads"
+> & {
   annotationCount: number;
   logCount: number;
 };
 export function summarize(s: Session): SessionSummary {
-  const { annotations, console: logs, uploads: _uploads, ...rest } = s;
+  const { annotations, pendingCapture: _pending, console: logs, uploads: _uploads, ...rest } = s;
   return { ...rest, annotationCount: annotations.length, logCount: logs.length };
 }
 export function isNotionUrl(input: string): boolean {

@@ -41,6 +41,7 @@ export async function pause(tabId: number) {
   if (id)
     await updateSession(id, (s) => ({
       ...s,
+      pendingCapture: undefined,
       consoleStatus: s.consoleStatus === "recording" ? "stopped" : s.consoleStatus,
     }));
 }

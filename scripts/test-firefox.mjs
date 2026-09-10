@@ -241,6 +241,9 @@ try {
   const eid = textarea["element-6066-11e4-a52e-4f735466cecf"];
   await call(`/element/${eid}/value`, { text: "Firefox capture test" });
   await exec(
+    `const target=document.querySelector('#target');target.style.background='rgb(240,100,60)';target.textContent='Image suivante';`,
+  );
+  await exec(
     'Array.from(document.querySelector("pi2-annotator").shadowRoot.querySelectorAll("button")).find(b=>b.textContent.includes("Ajouter")).click();',
   );
   await until(() =>

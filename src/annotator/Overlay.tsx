@@ -20,6 +20,7 @@ export function Overlay({ host, close }: { host: HTMLElement; close: () => void 
   const [hover, setHover] = useState<Element | null>(null);
   const [selected, setSelected] = useState<Element | null>(null);
   const [editing, setEditing] = useState<string>();
+  const [captureId, setCaptureId] = useState<string>();
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -84,27 +85,22 @@ export function Overlay({ host, close }: { host: HTMLElement; close: () => void 
       }
     };
     const click = (e: MouseEvent) => {
-      if (!picking || selected || busy || ownElement(e)) return;
+      if (!picking || selected || ownElement(e)) return;
       e.preventDefault();
       e.stopImmediatePropagation();
+      if (busyRef.current) return;
       const element = selectable(e);
       if (element) {
-        setSelected(element);
-        setHover(null);
-        setEditing(undefined);
-        setBody("");
-        setError("");
+        void select(element);
       } else if ((e.target as Element)?.tagName === "IFRAME")
         setError(
           t("Les éléments internes des iframes ne sont pas pris en charge dans cette version."),
         );
     };
     const key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === "Escape" && !busyRef.current) {
         if (selected) {
-          setSelected(null);
-          setEditing(undefined);
-          setBody("");
+          clearSelection();
         } else setPicking(false);
         setHover(null);
       }
@@ -119,7 +115,41 @@ export function Overlay({ host, close }: { host: HTMLElement; close: () => void 
       window.removeEventListener("click", click, true);
       window.removeEventListener("keydown", key, true);
     };
-  }, [picking, selected, busy, t]);
+  }, [picking, selected, busy, captureId, t]);
+  function discardCapture() {
+    if (captureId) void request({ type: "discard-capture", captureId }).catch(() => {});
+    setCaptureId(undefined);
+  }
+  function clearSelection() {
+    discardCapture();
+    setSelected(null);
+    setEditing(undefined);
+    setBody("");
+  }
+  async function select(element: Element) {
+    busyRef.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      const target = describe(element);
+      host.setAttribute("data-pi2-capturing", "");
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      );
+      const id = await request<string>({ type: "capture", target });
+      setCaptureId(id);
+      setSelected(element);
+      setHover(null);
+      setEditing(undefined);
+      setBody("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("La capture a échoué."));
+    } finally {
+      host.removeAttribute("data-pi2-capturing");
+      busyRef.current = false;
+      setBusy(false);
+    }
+  }
   async function save() {
     if (!body.trim() || busy) return;
     setBusy(true);
@@ -127,13 +157,10 @@ export function Overlay({ host, close }: { host: HTMLElement; close: () => void 
     try {
       if (editing) await request({ type: "edit", annotationId: editing, body });
       else {
-        if (!selected) throw Error(t("Sélectionnez un élément."));
-        host.setAttribute("data-pi2-capturing", "");
-        await new Promise<void>((resolve) =>
-          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-        );
-        await request({ type: "capture", body, target: describe(selected) });
+        if (!captureId) throw Error(t("Sélectionnez un élément."));
+        await request({ type: "add", body, captureId });
       }
+      setCaptureId(undefined);
       setSelected(null);
       setEditing(undefined);
       setBody("");
@@ -141,7 +168,6 @@ export function Overlay({ host, close }: { host: HTMLElement; close: () => void 
     } catch (e) {
       setError(e instanceof Error ? e.message : t("La capture a échoué."));
     } finally {
-      host.removeAttribute("data-pi2-capturing");
       setBusy(false);
     }
   }
@@ -173,6 +199,7 @@ export function Overlay({ host, close }: { host: HTMLElement; close: () => void 
     }
   }
   function edit(a: Current["annotations"][number]) {
+    discardCapture();
     const element = locate(a.target.selector);
     setEditing(a.id);
     setSelected(element);
@@ -231,12 +258,9 @@ export function Overlay({ host, close }: { host: HTMLElement; close: () => void 
             </span>
             <button
               className="vf-close"
+              disabled={busy}
               aria-label={t("Fermer le commentaire")}
-              onClick={() => {
-                setSelected(null);
-                setEditing(undefined);
-                setBody("");
-              }}
+              onClick={clearSelection}
             >
               <XIcon size={14} />
             </button>
@@ -268,7 +292,7 @@ export function Overlay({ host, close }: { host: HTMLElement; close: () => void 
               disabled={busy || !body.trim()}
               onClick={() => void save()}
             >
-              {t(busy ? "Capture…" : editing ? "Enregistrer" : "Ajouter")}
+              {t(busy ? "Enregistrement…" : editing ? "Enregistrer" : "Ajouter")}
               <span>↵</span>
             </button>
           </div>

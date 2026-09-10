@@ -15,9 +15,14 @@ export const messageSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("current") }),
   z.object({
     type: z.literal("capture"),
-    body: z.string().trim().min(1).max(4000),
     target: targetSchema,
   }),
+  z.object({
+    type: z.literal("add"),
+    captureId: z.string(),
+    body: z.string().trim().min(1).max(4000),
+  }),
+  z.object({ type: z.literal("discard-capture"), captureId: z.string() }),
   z.object({
     type: z.literal("edit"),
     annotationId: z.string(),
@@ -36,4 +41,13 @@ export async function request<T = unknown>(message: Message): Promise<T> {
   if (!reply?.ok) throw Error(reply?.error ?? "Extension indisponible. Rechargez la page.");
   return reply.data as T;
 }
-export const contentCommands = new Set(["current", "capture", "edit", "remove", "pause", "submit"]);
+export const contentCommands = new Set([
+  "current",
+  "capture",
+  "add",
+  "discard-capture",
+  "edit",
+  "remove",
+  "pause",
+  "submit",
+]);

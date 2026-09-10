@@ -81,6 +81,25 @@ export function App() {
       {state.data?.shortcutError?.tabId === tab.data?.id && state.data?.shortcutError && (
         <ErrorNotice error={Error(state.data.shortcutError.message)} />
       )}
+      {state.data?.shortcut === "" && (
+        <div className="notice" role="status">
+          <p>{t("Aucun raccourci n’est attribué à Pi2 dans ce navigateur.")}</p>
+          {import.meta.env.FIREFOX ? (
+            <p>
+              {t(
+                "Dans les modules complémentaires, ouvrez Gérer les raccourcis d’extensions pour attribuer Ctrl + . (⌘ + . sur Mac).",
+              )}
+            </p>
+          ) : (
+            <Button
+              variant="secondary"
+              onClick={() => void browser.tabs.create({ url: "chrome://extensions/shortcuts" })}
+            >
+              {t("Configurer le raccourci")}
+            </Button>
+          )}
+        </div>
+      )}
       <footer>
         <span>v{browser.runtime.getManifest().version}</span>
       </footer>
@@ -453,14 +472,12 @@ function SitePopup({ state, tab }: { state: AppState; tab?: chrome.tabs.Tab }) {
               {t(
                 draft?.annotationCount ? "Reprendre les annotations" : "Commencer les annotations",
               )}
-              <kbd
-                className="button-shortcut"
-                title="⌘ + . sur Mac · Ctrl + . sur Windows/Linux"
-                aria-hidden="true"
-              >
-                <CommandIcon />
-                <span>.</span>
-              </kbd>
+              {state.shortcut && (
+                <kbd className="button-shortcut" title={state.shortcut} aria-hidden="true">
+                  <CommandIcon />
+                  <span>.</span>
+                </kbd>
+              )}
             </Button>
           ) : (
             <>

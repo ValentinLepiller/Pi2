@@ -9,6 +9,7 @@ if (!process.env.DISPLAY || process.env.DISPLAY === process.env.PI2_ORIGINAL_DIS
 const profile = await mkdtemp("/tmp/pi2-shortcut-");
 const context = await chromium.launchPersistentContext(profile, {
   channel: "chromium",
+  executablePath: process.env.PI2_TEST_BROWSER_BINARY,
   headless: false,
   viewport: null,
   env: { ...process.env, WAYLAND_DISPLAY: "", XDG_SESSION_TYPE: "x11" },
@@ -174,6 +175,27 @@ try {
   ).toBeLessThan(0.1);
   await shortcut();
   await expect(overlay).toHaveCount(0);
+  // Chromium may leave the suggested binding empty after installation or a conflict.
+  const shortcutsPage = await context.newPage();
+  await shortcutsPage.goto("chrome://extensions/shortcuts");
+  await shortcutsPage.evaluate(async (id) => {
+    await new Promise<void>((resolve) =>
+      (chrome as any).developerPrivate.updateExtensionCommand(
+        { extensionId: id, commandName: "toggle-annotations", keybinding: "" },
+        resolve,
+      ),
+    );
+  }, extensionId);
+  await setup.reload();
+  await expect(
+    setup.getByText("Aucun raccourci n’est attribué à Pi2 dans ce navigateur."),
+  ).toBeVisible();
+  await expect(setup.getByRole("button", { name: "Configurer le raccourci" })).toBeVisible();
+  expect(
+    (await worker.evaluate(() => chrome.commands.getAll())).find(
+      (c) => c.name === "toggle-annotations",
+    )?.shortcut,
+  ).toBe("");
   console.log(
     "Raccourci natif validé : ouverture, sélection requise, activation, pause, reprise et rechargement.",
   );

@@ -6,6 +6,7 @@ export type AppState = {
   connections: PublicConnection[];
   sessions: SessionSummary[];
   shortcutError?: { tabId: number; message: string } | null;
+  shortcut: string;
 };
 export const queryClient = new QueryClient({
   defaultOptions: {

@@ -662,13 +662,22 @@ test("capturer uniquement le composant sans interface Pi2, même après défilem
         );
       };
       await expect.poll(aligned).toBe(true);
+      const capturedTarget = (await component.boundingBox())!;
       await component.click();
       await overlay
         .getByLabel("Commentaire", { exact: true })
         .fill("Le zoom du site ne doit pas déplacer le cadre.");
+      const inProgress = await options.evaluate(() =>
+        chrome.runtime.sendMessage({ type: "state" }),
+      );
+      expect(inProgress.data.sessions[0].annotationCount).toBe(2);
+      expect(JSON.stringify(inProgress)).not.toContain("data:image/png");
       // The site changes its scale without moving the pointer or resizing the window.
       await site.evaluate(() => {
         document.documentElement.style.zoom = "0.75";
+        const component = document.querySelector<HTMLElement>("#capture-component")!;
+        component.style.background = "rgb(240, 100, 60)";
+        component.textContent = "Image suivante du carrousel";
       });
       await expect.poll(aligned).toBe(true);
       await expect
@@ -692,14 +701,44 @@ test("capturer uniquement le composant sans interface Pi2, même après défilem
         async (sessionId) => chrome.runtime.sendMessage({ type: "export-session", id: sessionId }),
         started.data.id,
       );
+      expect(exported.data.annotations.at(-1).target.text).toBe("");
       const size = await options.evaluate(async (url) => {
         const bitmap = await createImageBitmap(await (await fetch(url)).blob());
-        const size = { width: bitmap.width, height: bitmap.height };
+        const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(bitmap, 0, 0);
+        const pixels = ctx.getImageData(0, 0, bitmap.width, bitmap.height).data;
+        let altered = 0;
+        for (let i = 0; i < pixels.length; i += 4)
+          if (pixels[i] !== 112 || pixels[i + 1] !== 64 || pixels[i + 2] !== 176) altered++;
+        const size = { width: bitmap.width, height: bitmap.height, altered };
         bitmap.close();
         return size;
       }, exported.data.screenshots.at(-1).dataUrl);
-      expect(Math.abs(size.width - target.width * 2)).toBeLessThanOrEqual(2);
-      expect(Math.abs(size.height - target.height * 2)).toBeLessThanOrEqual(2);
+      expect(size.altered).toBe(0);
+      expect(Math.abs(size.width - capturedTarget.width * 2)).toBeLessThanOrEqual(2);
+      expect(Math.abs(size.height - capturedTarget.height * 2)).toBeLessThanOrEqual(2);
+      // Cancelling a captured selection must not add an empty feedback.
+      await component.click();
+      await overlay.getByLabel("Commentaire", { exact: true }).fill("Retour annulé");
+      await overlay.getByLabel("Fermer le commentaire").click();
+      const cancelled = await options.evaluate(() => chrome.runtime.sendMessage({ type: "state" }));
+      expect(cancelled.data.sessions[0].annotationCount).toBe(3);
+      expect(JSON.stringify(cancelled)).not.toContain("data:image/png");
+      await component.click();
+      await overlay
+        .getByLabel("Commentaire", { exact: true })
+        .fill("Conserver l’image même si le composant disparaît.");
+      await component.evaluate((el) => el.remove());
+      await overlay.getByRole("button", { name: "Ajouter", exact: false }).click();
+      await expect(overlay.getByLabel("Commentaire", { exact: true })).toHaveCount(0);
+      const removed = await options.evaluate(
+        async (sessionId) => chrome.runtime.sendMessage({ type: "export-session", id: sessionId }),
+        started.data.id,
+      );
+      expect(removed.data.annotations).toHaveLength(4);
+      expect(removed.data.annotations.at(-1).target.text).toBe("Image suivante du carrousel");
+      expect(removed.data.screenshots.at(-1).dataUrl).toMatch(/^data:image\/png;base64,/);
     });
   } finally {
     await context.close();

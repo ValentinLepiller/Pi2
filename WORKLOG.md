@@ -4,7 +4,7 @@
 
 ## Application
 
-Extension Chromium 127+ et Firefox 140+, version source 0.1.5. La dernière installation locale dans Brave reste en version 0.1.2. Interface dark dans la popup uniquement. PAT Notion ou clé d’intégration interne ; pas d’OAuth, de backend ni d’agent branché.
+Extension Chromium 127+ et Firefox 140+, version source 0.1.6. L’installation locale Brave vérifiée est en 0.1.5. Interface dark dans la popup uniquement. PAT Notion ou clé d’intégration interne ; pas d’OAuth, de backend ni d’agent branché.
 
 - Les pages de destination se préparent depuis Notion et se choisissent par leur nom depuis le site. Le choix est mémorisé par origine exacte.
 - Chaque nouveau retour crée sa propre page Notion : commentaire en titre, URL précise, PNG du composant visible et contexte JSON avec console. Les envois de l’ancienne version déjà commencés terminent leur page existante sans doublon.
@@ -13,7 +13,7 @@ Extension Chromium 127+ et Firefox 140+, version source 0.1.5. La dernière inst
 
 ## Installation locale
 
-Conserver l’identifiant `kodmpccblghoanniiflafihdnlbmlceh`, IndexedDB `vals-feedbacks` et le dossier `/home/valentin/.local/share/vals-feedbacks/chrome`. Les sauvegardes des fichiers sont dans le dossier `backups` voisin. Ne pas déplacer le projet ni réinstaller l’extension sous un autre chemin pour un simple renommage.
+Installation Brave actuelle : `gobajcmeijdnlpioioanmlamofhiombo`, dossier `/home/valentin/Downloads/pi2-0.1.5-chrome`. Ctrl + . était sans attribution ; il a été rétabli et relu via l’API du navigateur. Conserver ce chemin pour les mises à jour, ainsi qu’IndexedDB `vals-feedbacks`. L’ancienne installation (`kodmpccblghoanniiflafihdnlbmlceh`, `/home/valentin/.local/share/vals-feedbacks/chrome`) n’est plus celle chargée. Toujours revérifier l’installation active avant de modifier ses fichiers.
 
 ## GitHub et releases
 
@@ -31,6 +31,8 @@ La version 0.1.4 ajoute Firefox : API `browser` de WXT, arrière-plan MV3 sans d
 
 Parcours réel Firefox headless avec Notion simulé : connexion, raccourci, annotation, PNG recadré sans pixels Pi2, refus des commandes privilégiées depuis les pages, export Notion et déconnexion. Les cinq parcours Chromium passent également. Scripts et builds des deux navigateurs sont disponibles. La version 0.1.5 corrige le décalage du sélecteur sur les sites appliquant un zoom CSS à html/body (reproduit sur Galadrim en grand écran). Cadre, éditeur, repères et capture vérifiés sous zoom imbriqué sur Chromium et Firefox ; changement de zoom pendant la saisie couvert sur Chromium. La bordure du raccourci a également été retirée.
 
-Release : https://github.com/ValentinLepiller/Pi2/releases/tag/v0.1.5. Vérifier `git status` à la reprise.
+La version 0.1.6 capture au clic : image et contexte conservés dans une sélection en attente, validation du commentaire sans nouvelle capture, annulation sans annotation vide. Tests : carrousel simulé, changement de taille/zoom, disparition du composant, Chromium et Firefox. Une installation Brave neuve attribue bien Ctrl + . ; la popup signale une attribution absente et propose sa configuration.
+
+Release : https://github.com/ValentinLepiller/Pi2/releases/tag/v0.1.6. Vérifier `git status` à la reprise.
 
 Le renommage du libellé du projet dans la barre latérale Codex n’a pas été effectué dans cette tâche. Le dossier de travail a été conservé.

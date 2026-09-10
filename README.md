@@ -8,16 +8,18 @@ Télécharger `pi2-VERSION-chrome.zip` dans les **Assets** de la [dernière rele
 
 **Firefox** : télécharger `pi2-VERSION-firefox.zip`. Dans `about:debugging#/runtime/this-firefox`, choisir **Charger un module complémentaire temporaire**, puis le ZIP. Ce build non signé reste chargé jusqu’à la fermeture de Firefox ; une installation permanente nécessite une signature Mozilla. La collecte console est disponible uniquement sur Chromium.
 
+Pour mettre Chromium à jour, remplacer les fichiers dans **le même dossier**, puis cliquer sur **Recharger** dans la page des extensions et recharger le site. Charger chaque version depuis un nouveau dossier crée une autre installation, avec ses propres réglages.
+
 Depuis les sources : `bun install` puis `bun run build`. Charger `.output/chrome-mv3`. Pour Firefox : `bun run build:firefox`, puis charger `.output/firefox-mv3/manifest.json`.
 
 ## Connecter et annoter
 
 1. Sans jeton enregistré, le lien **Connecter Notion**, sous le bouton de validation, ouvre directement les jetons personnels depuis n’importe quel site. Rouvrir Pi2 sur n’importe quel site et saisir un **jeton personnel Notion** avec la capacité API de Notion, ou une clé d’intégration interne. Pour une intégration interne, partager aussi la page via **••• → Connexions**.
 2. Ouvrir la page Notion de destination, puis Pi2. **Vérifier la page**, puis **Créer la base Feedbacks ici** si nécessaire. La page est alors disponible dans la liste des destinations.
-3. Sur le site, ouvrir Pi2, choisir une page dans **Envoyer les feedbacks à**, puis **Commencer les annotations**. Ce choix est mémorisé pour le site. Sélectionner un élément, écrire un commentaire, puis **Ajouter**. Les repères permettent de modifier ou supprimer ; **Naviguer** permet d’utiliser le site.
+3. Sur le site, ouvrir Pi2, choisir une page dans **Envoyer les feedbacks à**, puis **Commencer les annotations**. Ce choix est mémorisé pour le site. Sélectionner un élément : son image et son contexte sont capturés immédiatement. Écrire ensuite un commentaire, puis **Ajouter** ; la capture est conservée même si la page change. Les repères permettent de modifier ou supprimer ; **Naviguer** permet d’utiliser le site.
 4. **Envoyer** crée une page Notion par retour, avec son commentaire en titre, sa capture et son contexte JSON (console incluse sur Chromium). Les brouillons persistent après rechargement ou redémarrage. En cas d’échec, rouvrir la popup sur le site pour réessayer.
 
-**Ctrl + .** (ou **⌘.** sur Mac) active ou met en pause les annotations sur un site déjà lié. Sinon, il ouvre Pi2. Les annotations ajoutées sont conservées. Le raccourci se personnalise dans `chrome://extensions/shortcuts` (ou `brave://extensions/shortcuts`).
+**Ctrl + .** (ou **⌘.** sur Mac) active ou met en pause les annotations sur un site déjà lié. Sinon, il ouvre Pi2. Les annotations ajoutées sont conservées. Si le navigateur n’a attribué aucune touche, Pi2 propose de configurer le raccourci. Il se personnalise dans `chrome://extensions/shortcuts` (ou `brave://extensions/shortcuts`).
 
 Le jeton se saisit dans la popup sur tout site ; les pages de destination se préparent depuis Notion et se choisissent sur le site. Le jeton reste dans ce profil de navigateur. Les sous-domaines, ports et protocoles sont associés séparément.
 

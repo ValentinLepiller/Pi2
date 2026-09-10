@@ -121,17 +121,21 @@ async function rememberDestinations(destinations: Destination[]) {
 async function handle(message: Message, sender: chrome.runtime.MessageSender): Promise<unknown> {
   switch (message.type) {
     case "state": {
-      const [configuration, connections, sessions, { shortcutError }] = await Promise.all([
-        getConfiguration(),
-        getConnections(),
-        sessionSummaries(),
-        browser.storage.session.get("shortcutError"),
-      ]);
+      const [configuration, connections, sessions, { shortcutError }, commands] = await Promise.all(
+        [
+          getConfiguration(),
+          getConnections(),
+          sessionSummaries(),
+          browser.storage.session.get("shortcutError"),
+          browser.commands.getAll(),
+        ],
+      );
       return {
         configuration,
         connections: connections.map(({ token: _token, ...c }) => c),
         sessions,
         shortcutError: shortcutError ?? null,
+        shortcut: commands.find((c) => c.name === "toggle-annotations")?.shortcut ?? "",
       };
     }
     case "destinations":
@@ -259,21 +263,41 @@ async function handle(message: Message, sender: chrome.runtime.MessageSender): P
     case "capture":
       return navigator.locks.request(`capture:${tabId}`, async () => {
         const fresh = await getSession(s.id);
-        if ((fresh?.annotations.length ?? 0) >= MAX_ANNOTATIONS)
+        if (fresh?.status !== "draft") throw Error("Cette session n’est plus modifiable.");
+        if (fresh.annotations.length >= MAX_ANNOTATIONS)
           throw Error(`Envoyez ces ${MAX_ANNOTATIONS} annotations avant de continuer.`);
         if (new URL(message.target.url).origin !== s.origin)
           throw Error("La sélection appartient à un autre site.");
+        const createdAt = new Date().toISOString();
         const screenshot = await capture(tabId, message.target);
-        const annotation = {
+        const pendingCapture = {
           id: crypto.randomUUID(),
-          body: message.body,
           target: message.target,
           screenshot,
-          createdAt: new Date().toISOString(),
+          createdAt,
         };
-        await updateSession(s.id, (v) => ({ ...v, annotations: [...v.annotations, annotation] }));
-        return annotation.id;
+        await updateSession(s.id, (v) => ({ ...v, pendingCapture }));
+        return pendingCapture.id;
       });
+    case "add":
+      await updateSession(s.id, (v) => {
+        if (v.annotations.some((a) => a.id === message.captureId)) return v;
+        if (v.status !== "draft" || v.pendingCapture?.id !== message.captureId)
+          throw Error("Cette capture n’est plus disponible. Sélectionnez à nouveau le composant.");
+        if (v.annotations.length >= MAX_ANNOTATIONS)
+          throw Error(`Envoyez ces ${MAX_ANNOTATIONS} annotations avant de continuer.`);
+        return {
+          ...v,
+          pendingCapture: undefined,
+          annotations: [...v.annotations, { ...v.pendingCapture, body: message.body }],
+        };
+      });
+      return;
+    case "discard-capture":
+      await updateSession(s.id, (v) =>
+        v.pendingCapture?.id === message.captureId ? { ...v, pendingCapture: undefined } : v,
+      );
+      return;
     case "edit":
       await updateSession(s.id, (v) => ({
         ...v,

@@ -20,6 +20,8 @@ Raccourci natif Ctrl + . (Command + . sur macOS) : annotations actives → pause
 
 L’overlay doit neutraliser le zoom CSS de ses ancêtres : les coordonnées `getBoundingClientRect()` incluent déjà ce zoom. Garder le cadre, le commentaire et les repères alignés après un changement de zoom du site.
 
+Capturer l’image et le contexte dès le clic de sélection, avant la saisie. La validation ajoute le commentaire à cette capture conservée, sans recapturer ni relire le DOM. Une capture annulée ne crée aucun retour.
+
 Captures PNG recadrées sur la partie visible du composant sélectionné, sans encadrement ajouté ni interface Pi2. Masquer le host via un attribut et une règle interne au Shadow DOM, pour éviter les conflits avec `all: initial !important`.
 
 Envoi Notion : une annotation = une page, avec son image et son contexte JSON propre. Dédupliquer chaque annotation lors des reprises.
