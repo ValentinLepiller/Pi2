@@ -1,0 +1,23 @@
+:root,
+:host {
+  color-scheme: dark;
+  --vf-sidebar: #111512;
+  --vf-on-accent: #132719;
+  --vf-ink: #f0f1ed;
+  --vf-muted: #a6ada6;
+  --vf-paper: #141715;
+  --vf-surface: #1b201d;
+  --vf-soft: #262d28;
+  --vf-line: #343e36;
+  --vf-accent: #a1d6b0;
+  --vf-accent-hover: #b8e7c5;
+  --vf-accent-soft: #253b2c;
+  --vf-danger: #f2ac9d;
+  --vf-danger-bg: #392822;
+  --vf-danger-line: #6b4036;
+  --vf-warning: #e3c185;
+  --vf-warning-bg: #352f22;
+  --vf-focus: #a1d6b0;
+  --vf-font: "VF Jost", "Jost", system-ui, sans-serif;
+  --vf-mono: "VF Fira Mono", ui-monospace, monospace;
+}

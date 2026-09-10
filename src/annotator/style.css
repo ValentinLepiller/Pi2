@@ -1,0 +1,312 @@
+@import "../styles/theme.css";
+:host {
+  all: initial !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important;
+  pointer-events: none !important;
+  color-scheme: dark !important;
+}
+:host([data-pi2-capturing]) {
+  display: none !important;
+}
+* {
+  box-sizing: border-box;
+}
+.vf {
+  font: 14px/1.5 var(--vf-font);
+  color: var(--vf-ink);
+  letter-spacing: normal;
+  direction: ltr;
+}
+.vf button,
+.vf textarea {
+  font: inherit;
+}
+.vf button {
+  cursor: pointer;
+}
+.vf button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.vf button:focus-visible,
+.vf textarea:focus-visible {
+  outline: 3px solid var(--vf-focus);
+  outline-offset: 2px;
+}
+.vf-toolbar {
+  pointer-events: auto;
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px 9px 16px;
+  background: var(--vf-surface);
+  border: 1px solid var(--vf-line);
+  box-shadow: 0 8px 35px #00000050;
+  border-radius: 0;
+  max-width: calc(100vw - 30px);
+  flex-wrap: wrap;
+}
+.vf-logo {
+  width: 28px;
+  height: 28px;
+  background: var(--vf-accent);
+  border-radius: 0;
+  display: grid;
+  place-items: center;
+  font-weight: 750;
+  color: var(--vf-on-accent);
+}
+.vf-toolbar strong {
+  font-size: 12px;
+  font-weight: 650;
+  max-width: 200px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: block;
+}
+.vf-divider {
+  height: 22px;
+  width: 1px;
+  background: var(--vf-line);
+}
+.vf-btn {
+  border: 0;
+  background: var(--vf-soft);
+  border-radius: 0;
+  color: var(--vf-ink);
+  padding: 9px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+  font-size: 10px !important;
+  font-family: var(--vf-mono) !important;
+  font-weight: 500;
+  text-transform: uppercase;
+  transition: background 0.15s;
+}
+.vf-btn.primary {
+  background: var(--vf-accent);
+  color: var(--vf-on-accent);
+}
+.vf-btn.ghost {
+  background: transparent;
+}
+.vf-btn.danger {
+  color: var(--vf-danger);
+  background: var(--vf-danger-bg);
+}
+.vf-btn.active {
+  background: var(--vf-accent-soft);
+  color: var(--vf-accent);
+}
+.vf-close {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 18px !important;
+  color: var(--vf-muted);
+}
+.vf-editor {
+  pointer-events: auto;
+  position: fixed;
+  width: 310px;
+  max-width: calc(100vw - 24px);
+  background: var(--vf-surface);
+  box-shadow: 0 12px 48px #00000060;
+  border: 1px solid var(--vf-line);
+  border-radius: 0;
+  padding: 16px;
+}
+.vf-editor-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--vf-muted);
+  margin-bottom: 10px;
+  border-bottom: 1px dashed var(--vf-line);
+  padding-bottom: 8px;
+}
+.vf-editor textarea {
+  display: block;
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+  background: var(--vf-surface);
+  border: 1px solid var(--vf-line);
+  border-radius: 0;
+  padding: 11px;
+  color: var(--vf-ink);
+  font-size: 13px !important;
+}
+.vf-editor textarea::placeholder {
+  color: var(--vf-muted);
+}
+.vf-editor-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.vf-hint {
+  font-size: 10px;
+  color: var(--vf-muted);
+}
+.vf-highlight {
+  position: fixed;
+  pointer-events: none;
+  border: 2px solid var(--vf-accent);
+  background: #3d754e12;
+  border-radius: 0;
+}
+.vf-highlight-label {
+  position: absolute;
+  bottom: 100%;
+  left: -2px;
+  background: var(--vf-accent);
+  color: var(--vf-on-accent);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 0;
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vf-marker {
+  pointer-events: auto;
+  position: fixed;
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  background: var(--vf-accent);
+  color: var(--vf-on-accent);
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px #4b39232b;
+  font-size: 11px !important;
+  font-weight: 650;
+  transform: translate(-50%, -50%);
+}
+.vf-notice {
+  pointer-events: auto;
+  position: fixed;
+  bottom: 95px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 18px;
+  max-width: 540px;
+  background: var(--vf-warning-bg);
+  color: var(--vf-warning);
+  border: 1px solid var(--vf-warning-bg);
+  border-radius: 0;
+  font-size: 12px;
+  box-shadow: 0 4px 15px #0000000a;
+}
+.vf-error {
+  color: var(--vf-danger);
+  background: var(--vf-danger-bg);
+  border-color: var(--vf-danger-line);
+}
+.vf-console {
+  font-size: 10px;
+  color: var(--vf-muted);
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.vf-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--vf-accent);
+}
+.vf-dot.off {
+  background: var(--vf-warning);
+}
+.vf-list {
+  pointer-events: auto;
+  position: fixed;
+  right: 18px;
+  top: 18px;
+  width: 300px;
+  max-height: 60vh;
+  overflow: auto;
+  border: 1px solid var(--vf-line);
+  border-radius: 0;
+  background: var(--vf-surface);
+  box-shadow: 0 8px 30px #00000050;
+  padding: 16px;
+}
+.vf-list h3 {
+  font-size: 13px;
+  margin: 0 0 12px;
+}
+.vf-list-item {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-top: 1px dashed var(--vf-line);
+  background: transparent;
+  color: var(--vf-ink);
+  padding: 12px 0;
+  font-size: 12px !important;
+  display: flex;
+  gap: 8px;
+}
+.vf-list-item span {
+  background: var(--vf-accent-soft);
+  color: var(--vf-accent);
+  border-radius: 0;
+  padding: 1px 5px;
+  height: 20px;
+}
+.vf-success {
+  background: var(--vf-accent-soft);
+  border-color: var(--vf-line);
+  color: var(--vf-accent);
+}
+.vf-toolbar-caption {
+  display: grid;
+  gap: 1px;
+}
+.vf-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.vf-btn.primary:hover {
+  background: var(--vf-accent-hover);
+}
+.vf-btn.ghost:hover,
+.vf-close:hover {
+  background: var(--vf-soft);
+}
+.vf-console,
+.vf-highlight-label,
+.vf-marker,
+.vf-list-item span {
+  font-family: var(--vf-mono) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vf-btn {
+    transition: none;
+  }
+}
